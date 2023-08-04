@@ -1,8 +1,4 @@
-## CISTAR-flowsheets
-This folder contains folders, sub-folders, and files that are in active development for multiscale shale gas upgrading process optimization. The following sub-sections will highlight the contents of this folder.
-
-### archived
-This folder contains archived calculation files and folders. Validity of calculations using files and functions from this folder are not guaranteed.
+This GitHub repository contains original files used to compute results that have been submitted for publication. This includes scripts for reduced order kinetic model formulation, process flowsheet formulation, initialization, and optimization using IDAES, analysis of optimization results, and illustrations. The following sub-sections will highlight the contents of this folder.
 
 ### data
 This folder contains parameter and feed composition data in .xlsx and .csv files.
