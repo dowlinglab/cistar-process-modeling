@@ -5,10 +5,10 @@ from idaes.models.properties.modular_properties.reactions.dh_rxn import \
 from idaes.models.properties.modular_properties.base.utility import (
         ConcentrationForm)
 
-from rate_constant_custom_oligomerization import \
+from src.rate_constant_custom_oligomerization import \
     CoupledOligomerizationCrackingReactionClass
 
-from rate_forms_oligo import \
+from src.rate_forms_oligo import \
     power_law_rate
 
 def return_reaction_network(model_code = 2,
@@ -44,7 +44,7 @@ def return_reaction_network(model_code = 2,
     rate_reactions = {}
 
     # Read-in kinetic parameters
-    kinetic_model_df = pd.read_csv('fitted_parameters_M{}.csv'.format(model_code))
+    kinetic_model_df = pd.read_csv('src/../data/fitted_parameters_M{}.csv'.format(model_code))
     kinetic_model_params_dict = {}
     for i, row in kinetic_model_df.iterrows():
         kinetic_model_params_dict[row[0]] = row[1]

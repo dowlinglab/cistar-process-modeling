@@ -1,6 +1,6 @@
 # adding grandparent directory to path
 import sys
-sys.path.append("../")
+sys.path.append("./../")
 
 from pyomo.environ import (Constraint,
                            ConstraintList,
@@ -89,21 +89,21 @@ from idaes.core.util import scaling as iscale
 from idaes.core.util.initialization import propagate_state
 
 # Stream component properties
-from state_properties.properties_vap import configuration as configuration_vapor
-from state_properties.properties_vap_H2_permeate import configuration as configuration_H2_permeate
-from state_properties.properties_VLE_FpcTP import configuration as configuration_VLE
-from state_properties.properties_vap_post_flash_2 import configuration as configuration_vap_post_flash_2
+from src.state_properties.properties_vap import configuration as configuration_vapor
+from src.state_properties.properties_vap_H2_permeate import configuration as configuration_H2_permeate
+from src.state_properties.properties_VLE_FpcTP import configuration as configuration_VLE
+from src.state_properties.properties_vap_post_flash_2 import configuration as configuration_vap_post_flash_2
 
 # dehydrogenation simple kinetics reaction block
-from dehydro_reactions import rxn_configuration
+from src.dehydro_reactions import rxn_configuration
 
 # oligomerization kinetics reaction block
-from reaction_network_generator import return_reaction_network
+from src.reaction_network_generator import return_reaction_network
 
 # Emissions and costing functions
-from emissions_calculations import calc_lhv_values, calculate_stream_energies, calculate_emissions, create_ghg_objective
-from costing_function import add_costing,calculate_costs_for_objective
-from utility_minimization_1d import (
+from src.emissions_calculations import calc_lhv_values, calculate_stream_energies, calculate_emissions, create_ghg_objective
+from src.costing_function import add_costing,calculate_costs_for_objective
+from src.utility_minimization_1d import (
     min_utility,
     PinchDataClass,
     heat_ex_data,
@@ -117,8 +117,8 @@ from utility_minimization_1d import (
 
 import pandas as pd
 
-from utility_minimization_1d import heat_ex_data, return_HX_results
-from plotting_functions import generate_and_save_composite_curves
+from src.utility_minimization_1d import heat_ex_data, return_HX_results
+from src.plotting_functions import generate_and_save_composite_curves
 
 def create_flowsheet(model_code):
     """
@@ -1046,7 +1046,7 @@ def create_model_and_return_optimization_results(init_file_name, converged_file_
     print("Costing data read-in successful.")
 
     CDs_initialized = heat_ex_data(m.fs, [m.fs.H101, m.fs.H103, m.fs.R101], [m.fs.H102, m.fs.H104, m.fs.H105, m.fs.H106, m.fs.R102])
-    generate_and_save_composite_curves(CDs_initialized,model_code, c_tax_rate, region,optimal_solution=False)
+    cold_df_initial, hot_df_initial = generate_and_save_composite_curves(CDs_initialized,model_code, c_tax_rate, region,optimal_solution=False)
     HI_df_initialized = return_HX_results(m.fs,[m.fs.H101, m.fs.H103, m.fs.R101, m.fs.H102, m.fs.H104, m.fs.H105, m.fs.H106, m.fs.R102])
 
 
@@ -1060,11 +1060,11 @@ def create_model_and_return_optimization_results(init_file_name, converged_file_
     print("Optimization results read-in successful.")
 
     CDs_optimal = heat_ex_data(m.fs, [m.fs.H101, m.fs.H103, m.fs.R101], [m.fs.H102, m.fs.H104, m.fs.H105, m.fs.H106, m.fs.R102])
-    generate_and_save_composite_curves(CDs_optimal,model_code, c_tax_rate, region,optimal_solution=True)
+    cold_df_optimal, hot_df_optimal = generate_and_save_composite_curves(CDs_optimal,model_code, c_tax_rate, region,optimal_solution=True)
     HI_df_optimal = return_HX_results(m.fs,[m.fs.H101, m.fs.H103, m.fs.R101, m.fs.H102, m.fs.H104, m.fs.H105, m.fs.H106, m.fs.R102])
 
     print("\t\t ***** Flowsheet model with ROK model M{} and C-tax rate = {} for region {} creation complete. ***** \t\t\n\n".format(model_code, c_tax_rate, region))
-    return m, HI_df_initialized, HI_df_optimal
+    return m, HI_df_initialized, HI_df_optimal, cold_df_optimal, hot_df_optimal
 
 
 def initialize_flowsheet(m, tear_guesses={}):

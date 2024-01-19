@@ -1,8 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from pyomo.environ import value
-from utility_minimization_1d import gen_curves
+from src.utility_minimization_1d import gen_curves
 from matplotlib.ticker import (MultipleLocator, AutoMinorLocator)
+import pandas as pd
 
 colors_dict = {'hydrogen':'lightgray',
                 'methane':'gray',
@@ -36,6 +37,11 @@ def generate_and_save_composite_curves(CD,model_code,C_tax_rate,region,optimal_s
         optimal_solution: bool
             True: data is for optimal solution
             False: data is for initialized flowsheet
+    Returns:
+        cold_df: Pandas DataFrame
+            Dataframe with composite curve data for streams that are heated
+        hot_df: Pandas DataFrame
+            Dataframe with composite curve data for streams that are cooled
     """
     # Transform information from CD class into arrays for plotting function
 
@@ -87,7 +93,18 @@ def generate_and_save_composite_curves(CD,model_code,C_tax_rate,region,optimal_s
     else:
         plt.savefig('./plots/'+'composite_curve_M{}_C-tax_{}_region_{}_initialized.pdf'.format(model_code,C_tax_rate,region),bbox_inches='tight',dpi=200)
     plt.show()
-    return
+    
+    cold_df = pd.DataFrame(columns=['Qcold [GJ/h]','T [K]'])
+    for i,Qcold_i in enumerate(Qcold):
+        cold_dict = {'Qcold [GJ/h]':Qcold_i,'T [K]':Tcold[i]}
+        cold_df = pd.concat([cold_df, pd.DataFrame([cold_dict])],ignore_index=True)
+
+    hot_df = pd.DataFrame(columns=['Qhot [GJ/h]','T [K]'])
+    for i,Qhot_i in enumerate(Qhot):
+        hot_dict = {'Qhot [GJ/h]':Qhot_i,'T [K]':Thot[i]}
+        hot_df = pd.concat([hot_df, pd.DataFrame([hot_dict])],ignore_index=True)
+
+    return cold_df, hot_df
 
 
 def plot_outlet_flowrate_by_ROK_model_horizontal_stacked_bars(liquid_hc_component_flow_dict,ROK_model_list,
