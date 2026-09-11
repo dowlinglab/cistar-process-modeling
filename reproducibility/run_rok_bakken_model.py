@@ -103,7 +103,12 @@ def main() -> int:
     parser.add_argument(
         "--linear-solver", choices=("ma27", "ma57"), default="ma27"
     )
-    parser.add_argument("--max-iter", type=int, default=100)
+    parser.add_argument(
+        "--max-iter",
+        type=int,
+        default=500,
+        help="IPOPT iteration cap; the published M2-M4 notebooks use 500.",
+    )
     parser.add_argument(
         "--initial-optimum",
         action="store_true",
@@ -142,6 +147,16 @@ def main() -> int:
     _write_report(report, args.output)
 
     unfix_DOFs_pre_optimization(model)
+    # Preserve the notebook's explicit convergence perturbation. Fixing sets
+    # the current value to 590 K; unfixing immediately afterward leaves the
+    # variable free but retains that initial value for the NLP solve.
+    model.fs.H103.outlet.temperature.fix(590.0)
+    model.fs.H103.outlet.temperature.unfix()
+    report["initial_temperature_perturbation"] = {
+        "variable": "fs.H103.outlet.temperature",
+        "value_k": 590.0,
+        "method": "fix_then_unfix",
+    }
     initial_dof = degrees_of_freedom(model)
     solver = SolverFactory("ipopt", executable=str(ipopt))
     solver.options.update(
