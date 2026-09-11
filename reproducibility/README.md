@@ -29,6 +29,20 @@ python reproducibility/audit_published_tables.py --snapshot migrated
 python -m unittest discover -s tests -v
 ```
 
+After creating a historical candidate environment, rerun the M5/Bakken tax
+sequence without modifying archived checkpoints or CSVs:
+
+```bash
+python reproducibility/run_m5_bakken_tax_series.py \
+  --ipopt /absolute/path/to/hsl-enabled/ipopt \
+  --linear-solver ma27 \
+  --tee \
+  --output /path/outside/the/repository/m5-bakken-tax-series.json
+```
+
+Tax rates are expressed in USD/kg CO2e, matching the optimization notebook;
+the corresponding reported table values are 1,000 times larger in USD/tonne.
+
 The default `postprocessed` snapshot uses the root-level CSV files created by
 commit `957e363`, which recalculated TAC and MSP using cooling water above 303 K
 and refrigerated water from 288-303 K. The `migrated` snapshot uses the CSV files
