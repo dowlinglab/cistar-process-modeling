@@ -47,6 +47,14 @@ initialization. Small nonlinear solves terminate optimally with both MA27 and
 MA57. A1 is suitable for compatibility diagnostics, but it does not satisfy the
 paper stack gate because Python, platform, and IPOPT differ.
 
+The first full M5/Bakken optimization rerun at zero carbon tax also terminated
+optimally. Starting from the exact unit, constrained, and costed checkpoint
+chain, the eight-degree-of-freedom problem converged in 20 IPOPT iterations and
+reproduced every migrated-CSV quantity at or beyond its stored precision. See
+`reproducibility/runs/2026-09-11-candidate-a1-m5-bakken-tax0.json`. This proves
+one case is computationally reproducible under A1, while the paper-stack and
+full-matrix gates remain open.
+
 Run the repeatable smoke checks with:
 
 ```bash

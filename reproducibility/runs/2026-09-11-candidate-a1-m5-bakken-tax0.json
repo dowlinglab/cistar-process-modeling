@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "experiment_id": "A1-M5-BAKKEN-TAX0-001",
+  "date": "2026-09-11",
+  "git_commit": "66132a9",
+  "case": {
+    "model_code": 5,
+    "region": "Bakken",
+    "co2_tax_usd_per_kg": 0.0,
+    "catalyst_mass_kg": 1167.003367
+  },
+  "environment": {
+    "candidate": "A1",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "python": "3.10.8",
+    "idaes": "2.0.0.dev3",
+    "idaes_commit": "66935c80a5aafc3ffc9ab3d387e488cddd4f233b",
+    "pyomo": "6.4.2",
+    "ipopt": "3.14.19",
+    "linear_solver": "ma27"
+  },
+  "initialization_chain": [
+    "CISTAR_unit_initialization_Bakken_M5.json.gz",
+    "CISTAR_solve_constrained_Bakken_M5_purge_0.01.json.gz",
+    "CISTAR_solve_with_costing_Bakken_C_tax_0.0_M5_purge_0.01.json.gz"
+  ],
+  "invalid_attempt": {
+    "status": "interrupted",
+    "reason": "The first harness omitted the costed checkpoint before unfixing optimization variables.",
+    "initial_primal_infeasibility": 8600000.0,
+    "disposition": "Excluded from reproduction comparison; retained as initialization-provenance evidence."
+  },
+  "valid_attempt": {
+    "termination_condition": "optimal",
+    "optimization_degrees_of_freedom": 8,
+    "solver_variables": 5555,
+    "solver_equalities": 5547,
+    "solver_inequalities": 71,
+    "iterations": 20,
+    "ipopt_seconds": 629.804,
+    "wall_seconds": 1328.8590919971466,
+    "final_scaled_nlp_error": 9.090909152694691e-08,
+    "results": {
+      "msp_usd_per_gj": 10.389144743374914,
+      "downstream_emissions_kg_co2e_per_gj": 8.861411015343537,
+      "upstream_emissions_kg_co2e_per_gj": 8.065549019523516,
+      "product_lhv_gj_per_hour": 3125.4940595499656,
+      "h2_rebate_usd_per_year": 85948830.74580318,
+      "tac_usd_per_year": 217051794.98347497,
+      "t_r102_k": 650.5412652605357,
+      "t_h104_k": 308.5225166492563,
+      "t_h105_k": 307.75208090232854,
+      "p_f101_pa": 497872.81505768123,
+      "t_h106_k": 302.34463312486713,
+      "p_h106_pa": 155643.08659731798,
+      "p_f102_pa": 129830.0065252492,
+      "qs_gj_per_hour": 337.25802975135764,
+      "qw_gj_per_hour": 81.10178245890253
+    }
+  },
+  "archived_checkpoint_comparison": {
+    "checkpoint": "CISTAR_optimal_solution_Bakken_C_tax_0.0_M5_purge_0.01_sequential_solve.json.gz",
+    "msp_usd_per_gj_absolute_difference": 9.225565271719915e-07,
+    "downstream_emissions_absolute_difference": 5.744499897986088e-07,
+    "tac_usd_per_year_absolute_difference": 37.36607211828232,
+    "qs_gj_per_hour_absolute_difference": 1.984829475532024e-05,
+    "qw_gj_per_hour_absolute_difference": 2.620657848240171e-05,
+    "assessment": "Reproduced at or beyond the precision stored in the migrated CSV."
+  }
+}

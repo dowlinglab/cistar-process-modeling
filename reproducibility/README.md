@@ -12,6 +12,8 @@ snapshots and future reruns.
   notebook, archived data, and required comparison method.
 - `audit_published_tables.py` compares Tables S4-S6 with the two checked-in CSV
   families.
+- `runs/` contains immutable structured records for executed reproduction
+  attempts, including failed or interrupted attempts that affect provenance.
 
 The transcription tolerances are not solver regression tolerances. Phase A will
 add tighter, metric-specific solver tolerances after repeat-run variability has
