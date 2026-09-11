@@ -19,6 +19,14 @@ class PublishedReferenceTests(unittest.TestCase):
             with (REPO_ROOT / relative).open(encoding="utf-8") as stream:
                 self.assertEqual(json.load(stream)["schema_version"], 1)
 
+        run_records = sorted((REPO_ROOT / "reproducibility" / "runs").glob("*.json"))
+        self.assertGreaterEqual(len(run_records), 2)
+        for path in run_records:
+            with path.open(encoding="utf-8") as stream:
+                record = json.load(stream)
+            self.assertEqual(record["schema_version"], 1, path.name)
+            self.assertIn("experiment_id", record, path.name)
+
     def test_manifest_covers_every_published_figure_and_table(self):
         with (REPO_ROOT / "reproducibility/result_manifest.json").open(
             encoding="utf-8"
