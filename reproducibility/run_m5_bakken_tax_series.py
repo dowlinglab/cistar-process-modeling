@@ -207,6 +207,18 @@ def _load_archived_rows() -> dict[float, dict[str, float]]:
         }
 
 
+def _write_report(report: dict[str, Any], output: Path | None) -> None:
+    """Persist an incremental report without leaving a partially written JSON file."""
+    if output is None:
+        return
+    output.parent.mkdir(parents=True, exist_ok=True)
+    temporary = output.with_suffix(output.suffix + ".tmp")
+    temporary.write_text(
+        json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    temporary.replace(output)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--ipopt", type=Path, required=True)
@@ -256,6 +268,7 @@ def main() -> int:
             "CISTAR_solve_constrained_Bakken_M5_purge_0.01.json.gz",
             "CISTAR_solve_with_costing_Bakken_C_tax_0.0_M5_purge_0.01.json.gz",
         ],
+        "status": "building",
         "runs": [],
     }
 
@@ -272,6 +285,9 @@ def main() -> int:
         ms.from_json(model, fname=str(checkpoint))
         report["archived_initial_optimum"] = checkpoint.name
     report["build_seconds"] = time.time() - started
+    report["status"] = "running"
+    report["total_wall_seconds"] = time.time() - started
+    _write_report(report, args.output)
     archived_rows = _load_archived_rows()
 
     for tax_rate in args.tax_rates:
@@ -309,13 +325,14 @@ def main() -> int:
             }
         )
         fix_DOFs_post_optimization(model)
+        report["total_wall_seconds"] = time.time() - started
+        _write_report(report, args.output)
 
     report["total_wall_seconds"] = time.time() - started
+    report["status"] = "complete"
     rendered = json.dumps(report, indent=2, sort_keys=True)
     print(rendered)
-    if args.output:
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(rendered + "\n", encoding="utf-8")
+    _write_report(report, args.output)
     return 0 if all(
         run["termination_condition"] == "optimal" for run in report["runs"]
     ) else 2
