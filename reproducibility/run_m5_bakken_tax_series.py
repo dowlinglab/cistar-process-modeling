@@ -52,20 +52,25 @@ def _checkpoint(name: str) -> Path:
     return REPO_ROOT / "initialization_files" / name
 
 
-def _build_preoptimization_model() -> Any:
-    model = create_flowsheet(5)
+def _build_preoptimization_model(
+    model_code: int = 5,
+    region: str = "Bakken",
+    costing_tax: float = 0.0,
+) -> Any:
+    """Rebuild and load the published checkpoint chain before optimization."""
+    model = create_flowsheet(model_code)
     define_models(model, catalyst_mass=1167.003367)
     define_arcs(model)
 
     inlet_data = pd.read_csv(REPO_ROOT / "data" / "NGL_compositions.csv")
     composition = {
-        row["Species"]: (1e-6 if row["Bakken"] == 0.0 else round(row["Bakken"], 4))
+        row["Species"]: (1e-6 if row[region] == 0.0 else round(row[region], 4))
         for _, row in inlet_data.iterrows()
     }
     conversion = {"ethane": 0.3566, "propane": 0.6632, "nbutane": 0.5188}
     set_unit_model_variables(
         model,
-        model_code=5,
+        model_code=model_code,
         feed_flow_rate=481.3888889,
         feed_temp=308.0,
         feed_pressure=700000.0,
@@ -74,13 +79,15 @@ def _build_preoptimization_model() -> Any:
     )
     set_scaling_factors(
         model,
-        flow_mol_scaling_factor=1e-3,
+        flow_mol_scaling_factor=1e-2 if model_code in (2, 3) else 1e-3,
         inlet_composition_dict=composition,
     )
 
     ms.from_json(
         model,
-        fname=str(_checkpoint("CISTAR_unit_initialization_Bakken_M5.json.gz")),
+        fname=str(
+            _checkpoint(f"CISTAR_unit_initialization_{region}_M{model_code}.json.gz")
+        ),
     )
     update_model_after_initialization(model)
     # Preserve the published notebook sequence exactly. The second call is
@@ -90,7 +97,9 @@ def _build_preoptimization_model() -> Any:
     ms.from_json(
         model,
         fname=str(
-            _checkpoint("CISTAR_solve_constrained_Bakken_M5_purge_0.01.json.gz")
+            _checkpoint(
+                f"CISTAR_solve_constrained_{region}_M{model_code}_purge_0.01.json.gz"
+            )
         ),
     )
 
@@ -104,7 +113,7 @@ def _build_preoptimization_model() -> Any:
     model.fs.Qs.fix()
     calc_lhv_values(
         model,
-        "Bakken",
+        region,
         str(REPO_ROOT / "data" / "LHV.xlsx"),
         str(REPO_ROOT / "data" / "NGL_compositions.csv"),
         str(REPO_ROOT / "data" / "NGL_fraction.csv"),
@@ -112,16 +121,17 @@ def _build_preoptimization_model() -> Any:
     calculate_stream_energies(model)
     calculate_emissions(
         model,
-        "Bakken",
+        region,
         str(REPO_ROOT / "data" / "emissions_factor_by_region.csv"),
     )
     create_ghg_objective(model)
-    calculate_costs_for_objective(model, c_tax_flag=True, c_tax_val=0.0)
+    calculate_costs_for_objective(model, c_tax_flag=True, c_tax_val=costing_tax)
     ms.from_json(
         model,
         fname=str(
             _checkpoint(
-                "CISTAR_solve_with_costing_Bakken_C_tax_0.0_M5_purge_0.01.json.gz"
+                f"CISTAR_solve_with_costing_{region}_C_tax_{costing_tax}_"
+                f"M{model_code}_purge_0.01.json.gz"
             )
         ),
     )
