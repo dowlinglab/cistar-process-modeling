@@ -221,6 +221,15 @@ def main() -> int:
         metavar="USD_PER_KG",
     )
     parser.add_argument("--max-iter", type=int, default=100)
+    parser.add_argument(
+        "--initial-optimal-tax",
+        type=float,
+        metavar="USD_PER_KG",
+        help=(
+            "Load the archived M5/Bakken optimum at this tax before the first "
+            "requested solve. Useful for isolating one sequential transition."
+        ),
+    )
     parser.add_argument("--tee", action="store_true")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
@@ -251,6 +260,17 @@ def main() -> int:
     }
 
     model = _build_preoptimization_model()
+    if args.initial_optimal_tax is not None:
+        checkpoint = _checkpoint(
+            "CISTAR_optimal_solution_Bakken_C_tax_{}_M5_purge_0.01_"
+            "sequential_solve.json.gz".format(args.initial_optimal_tax)
+        )
+        if not checkpoint.exists():
+            raise FileNotFoundError(f"Archived starting point not found: {checkpoint}")
+        model.fs.c_tax_rate = args.initial_optimal_tax
+        unfix_DOFs_pre_optimization(model)
+        ms.from_json(model, fname=str(checkpoint))
+        report["archived_initial_optimum"] = checkpoint.name
     report["build_seconds"] = time.time() - started
     archived_rows = _load_archived_rows()
 
@@ -296,7 +316,9 @@ def main() -> int:
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(rendered + "\n", encoding="utf-8")
-    return 0
+    return 0 if all(
+        run["termination_condition"] == "optimal" for run in report["runs"]
+    ) else 2
 
 
 if __name__ == "__main__":

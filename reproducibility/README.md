@@ -42,6 +42,9 @@ python reproducibility/run_m5_bakken_tax_series.py \
 
 Tax rates are expressed in USD/kg CO2e, matching the optimization notebook;
 the corresponding reported table values are 1,000 times larger in USD/tonne.
+To isolate a difficult sequential transition, `--initial-optimal-tax 0.19
+--tax-rates 0.41` loads the archived USD 190/tonne optimum before solving the
+USD 410/tonne case.
 
 The default `postprocessed` snapshot uses the root-level CSV files created by
 commit `957e363`, which recalculated TAC and MSP using cooling water above 303 K
