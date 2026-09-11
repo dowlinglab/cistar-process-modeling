@@ -14,6 +14,7 @@ from typing import Any
 
 import idaes
 import pyomo
+from idaes.core.util import model_serializer as ms
 from idaes.core.util.model_statistics import degrees_of_freedom
 from pyomo.environ import SolverFactory
 
@@ -103,6 +104,11 @@ def main() -> int:
         "--linear-solver", choices=("ma27", "ma57"), default="ma27"
     )
     parser.add_argument("--max-iter", type=int, default=100)
+    parser.add_argument(
+        "--initial-optimum",
+        action="store_true",
+        help="Load the archived optimum after rebuilding the costed model.",
+    )
     parser.add_argument("--tee", action="store_true")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
@@ -119,6 +125,17 @@ def main() -> int:
         region="Bakken",
         costing_tax=PUBLISHED_TAX_USD_PER_KG,
     )
+    if args.initial_optimum:
+        checkpoint = (
+            REPO_ROOT
+            / "initialization_files"
+            / (
+                "CISTAR_optimal_solution_Bakken_C_tax_0.045_"
+                f"M{args.model_code}_purge_0.01.json.gz"
+            )
+        )
+        ms.from_json(model, fname=str(checkpoint))
+        report["archived_initial_optimum"] = checkpoint.name
     report["build_seconds"] = time.time() - started
     report["status"] = "running"
     report["total_wall_seconds"] = time.time() - started
