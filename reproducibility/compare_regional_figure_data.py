@@ -236,6 +236,19 @@ def _compare_curves(
     return result
 
 
+def _figure_7_classification(
+    difference: float, stream_max_material_relative: float | None
+) -> str:
+    if abs(difference) <= 0.5:
+        return "matches_printed_label"
+    if (
+        stream_max_material_relative is not None
+        and stream_max_material_relative <= 1e-5
+    ):
+        return "PUBLISHED-SNAPSHOT-DRIFT-001"
+    return "unclassified_fresh_solution_difference"
+
+
 def compare_record(
     record: dict[str, Any], workbook_path: Path, reference: dict[str, Any]
 ) -> dict[str, Any]:
@@ -274,20 +287,27 @@ def compare_record(
         archived_curves = _curves_from_heat_table(
             archived_heat, archived_qw_mw * 3600.0 / 1000.0
         )
+        stream_comparison = _compare_frames(
+            _frame_from_payload(figure_data["stream_table"]),
+            archived_streams,
+        )
+        heat_comparison = _compare_frames(
+            _frame_from_payload(figure_data["heat_exchanger_table"]),
+            archived_heat,
+        )
+        lhv_difference = fresh_lhv - paper_lhv
+        emissions_match_printed = (
+            abs(fresh_upstream - paper_emissions["upstream"]) <= 0.005
+            and abs(fresh_process - paper_emissions["process"]) <= 0.005
+        )
 
         comparisons.append(
             {
                 "region": region,
                 "stream_sheet": stream_sheet,
                 "heat_integration_sheet": heat_sheet,
-                "stream_table": _compare_frames(
-                    _frame_from_payload(figure_data["stream_table"]),
-                    archived_streams,
-                ),
-                "heat_exchanger_table": _compare_frames(
-                    _frame_from_payload(figure_data["heat_exchanger_table"]),
-                    archived_heat,
-                ),
+                "stream_table": stream_comparison,
+                "heat_exchanger_table": heat_comparison,
                 "composite_curves": _compare_curves(
                     figure_data["composite_curves"], archived_curves
                 ),
@@ -303,13 +323,25 @@ def compare_record(
                     "process_difference": (
                         fresh_process - paper_emissions["process"]
                     ),
+                    "within_print_rounding": emissions_match_printed,
+                    "classification": (
+                        "matches_printed_labels"
+                        if emissions_match_printed
+                        else "EMISSIONS-NORMALIZATION-001"
+                    ),
                 },
                 "figure_7": {
                     "unit": "MW liquid hydrocarbon LHV",
                     "fresh_total": fresh_lhv,
                     "paper_total_label": paper_lhv,
-                    "difference": fresh_lhv - paper_lhv,
-                    "within_print_rounding": abs(fresh_lhv - paper_lhv) <= 0.5,
+                    "difference": lhv_difference,
+                    "within_print_rounding": abs(lhv_difference) <= 0.5,
+                    "classification": _figure_7_classification(
+                        lhv_difference,
+                        stream_comparison[
+                            "maximum_material_relative_difference"
+                        ],
+                    ),
                 },
             }
         )

@@ -10,6 +10,7 @@ sys.path.insert(0, str(REPO_ROOT / "reproducibility"))
 
 from compare_regional_figure_data import (  # noqa: E402
     _compare_frames,
+    _figure_7_classification,
     _gen_curves,
     _workbook_region,
 )
@@ -56,6 +57,16 @@ class RegionalFigureComparisonTests(unittest.TestCase):
         )
         self.assertEqual(temperature.tolist(), [300.0, 400.0])
         self.assertEqual(heat.tolist(), [50.0, 0.0])
+
+    def test_figure_7_snapshot_drift_requires_workbook_agreement(self):
+        self.assertEqual(
+            _figure_7_classification(-1.2, 3e-7),
+            "PUBLISHED-SNAPSHOT-DRIFT-001",
+        )
+        self.assertEqual(
+            _figure_7_classification(-1.2, 2e-2),
+            "unclassified_fresh_solution_difference",
+        )
 
 
 if __name__ == "__main__":
