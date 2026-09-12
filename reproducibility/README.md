@@ -46,6 +46,21 @@ To isolate a difficult sequential transition, `--initial-optimal-tax 0.19
 --tax-rates 0.41` loads the archived USD 190/tonne optimum before solving the
 USD 410/tonne case.
 
+Regenerate all 23 archived optimal composite-curve PDFs into a separate
+directory, together with a machine-readable record of their numeric
+coordinates and source-workbook hash:
+
+```bash
+python reproducibility/regenerate_composite_curves.py \
+  --output-dir /path/outside/the/repository/composite-curves \
+  --record /path/outside/the/repository/composite-curves.json
+```
+
+This covers Main Figure 4 and Supporting Figures S3, S4, and S6-S8. The command
+reads `results/solution_data.xlsx` and the checked-in postprocessed result CSVs,
+uses the original composite-curve algorithm, and never overwrites the archived
+publication plots.
+
 Rerun one M5 regional case with the initialization and temperature
 perturbation used by its published notebook:
 
