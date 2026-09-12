@@ -190,6 +190,14 @@ equation or higher derivative an unsupported explanation for the modern solve
 failure. Writer/solver path sensitivity amplified by the severely conditioned
 state Jacobian remains the leading diagnosis.
 
+A full 100-iteration `nl_v1`/MA27 control is recorded as
+`B-M5-BAKKEN-NLV1-FULL-001`. It terminates at `maxIterations` after moving
+materially away from the archived solution, so selecting the legacy-compatible
+writer alone is not a modernization fix. The writer also reports 440 inherited
+scaling-suffix keys for components absent from the exported NL and 1,750 keys
+whose component types cannot be exported; this points to explicit active-NLP
+scaling, rather than writer selection, as the next intervention.
+
 ## Known provenance findings
 
 The published process/downstream emissions in Tables S4-S6 and Figures 3 and 6
