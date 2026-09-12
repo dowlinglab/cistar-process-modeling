@@ -9,6 +9,7 @@ import numbers
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pandas as pd
 
 
@@ -121,6 +122,83 @@ def _workbook_region(region: str) -> str:
     return "EF-Basn" if region == "EF-Basin" else region
 
 
+def _gen_curves(tin: np.ndarray, tout: np.ndarray, heat: np.ndarray):
+    temperatures = np.unique(np.concatenate((tin, tout)))
+    cumulative = np.zeros(len(temperatures))
+    for inlet, outlet, duty in zip(tin, tout, heat):
+        x = [inlet, outlet]
+        y = [0.0, duty]
+        lower = 0 if inlet < outlet else 1
+        upper = 1 - lower
+        for index, temperature in enumerate(temperatures):
+            alpha = (x[upper] - temperature) / (x[upper] - x[lower])
+            alpha = min(max(alpha, 0.0), 1.0)
+            cumulative[index] += alpha * (y[upper] - y[lower]) + y[lower]
+    return temperatures, cumulative
+
+
+def _curves_from_heat_table(
+    heat_table: pd.DataFrame, cooling_utility_gj_per_hour: float
+) -> dict[str, dict[str, list[float]]]:
+    rows = heat_table.set_index("Quantity")
+    heating = ["fs.H101", "fs.H103", "fs.R101"]
+    cooling = ["fs.H102", "fs.H104", "fs.H105", "fs.H106", "fs.R102"]
+
+    heating_inlet = rows.loc["T inlet", heating].astype(float).to_numpy()
+    heating_outlet = (
+        rows.loc["T outlet", heating].astype(float).to_numpy() + 1.0
+    )
+    heating_duty = rows.loc["Heat duty", heating].astype(float).to_numpy()
+    cooling_inlet = (
+        rows.loc["T inlet", cooling].astype(float).to_numpy() + 1.0
+    )
+    cooling_outlet = rows.loc["T outlet", cooling].astype(float).to_numpy()
+    cooling_duty = rows.loc["Heat duty", cooling].astype(float).to_numpy()
+
+    hot_temperature, hot_heat = _gen_curves(
+        cooling_inlet, cooling_outlet, cooling_duty
+    )
+    cold_temperature, cold_heat = _gen_curves(
+        heating_inlet, heating_outlet, -heating_duty
+    )
+    cold_heat = cold_heat + sum(heating_duty) + cooling_utility_gj_per_hour
+    return {
+        "hot": {
+            "temperature_k": hot_temperature.tolist(),
+            "cumulative_heat_gj_per_hour": (-hot_heat).tolist(),
+        },
+        "cold": {
+            "temperature_k": cold_temperature.tolist(),
+            "cumulative_heat_gj_per_hour": cold_heat.tolist(),
+        },
+    }
+
+
+def _compare_curves(
+    fresh: dict[str, dict[str, list[float]]],
+    archived: dict[str, dict[str, list[float]]],
+) -> dict[str, Any]:
+    result = {}
+    for side in ("hot", "cold"):
+        fresh_temperature = fresh[side]["temperature_k"]
+        archived_temperature = archived[side]["temperature_k"]
+        fresh_heat = fresh[side]["cumulative_heat_gj_per_hour"]
+        archived_heat = archived[side]["cumulative_heat_gj_per_hour"]
+        paired_temperature = zip(fresh_temperature, archived_temperature)
+        paired_heat = zip(fresh_heat, archived_heat)
+        result[side] = {
+            "fresh_point_count": len(fresh_temperature),
+            "archived_point_count": len(archived_temperature),
+            "maximum_temperature_difference_k": max(
+                (abs(a - b) for a, b in paired_temperature), default=None
+            ),
+            "maximum_heat_difference_gj_per_hour": max(
+                (abs(a - b) for a, b in paired_heat), default=None
+            ),
+        }
+    return result
+
+
 def compare_record(
     record: dict[str, Any], workbook_path: Path, reference: dict[str, Any]
 ) -> dict[str, Any]:
@@ -152,6 +230,13 @@ def compare_record(
             ].values()
         )
         paper_lhv = reference["figure_7"]["total_labels"][region]
+        archived_qw_mw = (
+            source_run["results_in_migrated_csv_units"]["Qw"]
+            - source_run["difference_from_migrated_csv"]["Qw"]
+        )
+        archived_curves = _curves_from_heat_table(
+            archived_heat, archived_qw_mw * 3600.0 / 1000.0
+        )
 
         comparisons.append(
             {
@@ -165,6 +250,9 @@ def compare_record(
                 "heat_exchanger_table": _compare_frames(
                     _frame_from_payload(figure_data["heat_exchanger_table"]),
                     archived_heat,
+                ),
+                "composite_curves": _compare_curves(
+                    figure_data["composite_curves"], archived_curves
                 ),
                 "figure_6": {
                     "unit": "g CO2e/MJ fuel",

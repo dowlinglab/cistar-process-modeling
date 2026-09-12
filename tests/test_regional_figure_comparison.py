@@ -10,6 +10,7 @@ sys.path.insert(0, str(REPO_ROOT / "reproducibility"))
 
 from compare_regional_figure_data import (  # noqa: E402
     _compare_frames,
+    _gen_curves,
     _workbook_region,
 )
 
@@ -37,6 +38,15 @@ class RegionalFigureComparisonTests(unittest.TestCase):
     def test_ef_basin_heat_sheet_preserves_archived_typo(self):
         self.assertEqual(_workbook_region("EF-Basin"), "EF-Basn")
         self.assertEqual(_workbook_region("EF-7"), "EF-7")
+
+    def test_curve_generation_matches_nearest_neighbor_interpolation(self):
+        temperature, heat = _gen_curves(
+            pd.Series([300.0]).to_numpy(),
+            pd.Series([400.0]).to_numpy(),
+            pd.Series([50.0]).to_numpy(),
+        )
+        self.assertEqual(temperature.tolist(), [300.0, 400.0])
+        self.assertEqual(heat.tolist(), [50.0, 0.0])
 
 
 if __name__ == "__main__":
