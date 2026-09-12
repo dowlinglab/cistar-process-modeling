@@ -28,6 +28,7 @@ from run_m5_region import (
     PUBLISHED_TAX_USD_PER_KG,
     _base_optimum_region,
     _change_region,
+    _collect_figure_data,
     _load_archived_row,
 )
 from src.unit_initialization import (
@@ -171,6 +172,7 @@ def main() -> int:
                 "difference_from_migrated_csv": {
                     metric: fresh[metric] - archived[metric] for metric in fresh
                 },
+                "figure_data": _collect_figure_data(model),
             }
         )
         fix_DOFs_post_optimization(model)

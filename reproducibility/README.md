@@ -65,7 +65,10 @@ JSON record after every completed zone so an interrupted run retains completed
 evidence. The single-case runner also accepts `--initial-optimum` as a
 compatibility control when the published initialization path is solver
 sensitive; this is a diagnostic restart and not a substitute for reproducing
-the notebook sequence.
+the notebook sequence. Completed regional records include the fresh stream
+table, heat-exchanger table, composite-curve coordinates, liquid-product
+component flows and LHV contributions, and upstream emissions needed to audit
+Figures 6-8 and S6-S8 as well as Table S6.
 
 The default `postprocessed` snapshot uses the root-level CSV files created by
 commit `957e363`, which recalculated TAC and MSP using cooling water above 303 K
