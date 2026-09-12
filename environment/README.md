@@ -41,6 +41,13 @@ environment and replacing IDAES 1.13.0 with commit `66935c80` using
 - bundled IPOPT 3.14.10 with MUMPS; and
 - external IPOPT 3.14.19 with HSL MA27 and MA57.
 
+`candidate-a1-macos-arm64.yml` captures the tested direct dependencies and the
+IDAES Git commit for a clean A1 reconstruction. The included conda IPOPT uses
+MUMPS and is sufficient for smoke tests; the full reproduction commands must
+still be given an external HSL-enabled IPOPT executable. That external binary
+is not redistributed by this repository and is therefore recorded as an
+explicit, unavoidable portability gap.
+
 All repository Python modules import under A1. The M5/Bakken flowsheet builds
 with 24,610 component data objects and four degrees of freedom before
 initialization. Small nonlinear solves terminate optimally with both MA27 and
