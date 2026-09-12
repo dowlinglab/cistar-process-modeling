@@ -42,11 +42,12 @@ environment and replacing IDAES 1.13.0 with commit `66935c80` using
 - external IPOPT 3.14.19 with HSL MA27 and MA57.
 
 `candidate-a1-macos-arm64.yml` captures the tested direct dependencies and the
-IDAES Git commit for a clean A1 reconstruction. The included conda IPOPT uses
-MUMPS and is sufficient for smoke tests; the full reproduction commands must
-still be given an external HSL-enabled IPOPT executable. That external binary
-is not redistributed by this repository and is therefore recorded as an
-explicit, unavoidable portability gap.
+IDAES Git commit for a clean A1 reconstruction. Only Python and pip are resolved
+by conda; the 2022-era scientific packages are installed from exact pip pins to
+avoid the current conda solver's high-memory search over old arm64 metadata.
+The reproduction commands must be given an external HSL-enabled IPOPT
+executable. That external binary is not redistributed by this repository and
+is therefore recorded as an explicit, unavoidable portability gap.
 
 All repository Python modules import under A1. The M5/Bakken flowsheet builds
 with 24,610 component data objects and four degrees of freedom before
@@ -61,6 +62,13 @@ reproduced every migrated-CSV quantity at or beyond its stored precision. See
 `reproducibility/runs/2026-09-11-candidate-a1-m5-bakken-tax0.json`. This proves
 one case is computationally reproducible under A1, while the paper-stack and
 full-matrix gates remain open.
+
+The declarative A1 environment was also created from scratch on 2026-09-12.
+In that clean environment, all 11 repository tests passed, the smoke check
+passed with both MA27 and MA57, and a fresh M5/Bakken zero-tax solve terminated
+optimally. Relative to the migrated CSV, its MSP differed by
+`-9.23e-10 USD/MJ` and its TAC by `-37.37 USD/year` on approximately
+`217 million USD/year`.
 
 Run the repeatable smoke checks with:
 

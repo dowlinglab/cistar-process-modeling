@@ -19,6 +19,11 @@ from pyomo.environ import Constraint, ConcreteModel, Objective, SolverFactory, V
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+# Direct execution sets sys.path[0] to reproducibility/, not the repository
+# root that contains the src package. Keep the documented command independent
+# of the caller's PYTHONPATH.
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 REPOSITORY_MODULES = (
     "src.dehydro_reactions",
