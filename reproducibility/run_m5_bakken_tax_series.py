@@ -286,6 +286,12 @@ def main() -> int:
     )
     parser.add_argument("--autoscale-norm", type=int, default=2)
     parser.add_argument(
+        "--solver-io",
+        choices=("nl", "nl_v1", "nl_v2"),
+        default="nl",
+        help="Select the Pyomo AMPL NL writer implementation.",
+    )
+    parser.add_argument(
         "--initial-optimal-tax",
         type=float,
         metavar="USD_PER_KG",
@@ -314,6 +320,7 @@ def main() -> int:
             "nlp_scaling_method": args.nlp_scaling_method or "ipopt-default",
             "modern_autoscale": args.modern_autoscale,
             "autoscale_norm": args.autoscale_norm if args.modern_autoscale else None,
+            "solver_io": args.solver_io,
         },
         "case": {"model_code": 5, "region": "Bakken"},
         "tax_rate_units": "USD/kg CO2e",
@@ -359,7 +366,9 @@ def main() -> int:
             }
         if args.modern_autoscale:
             _apply_modern_autoscaling(model, args.autoscale_norm)
-        solver = SolverFactory("ipopt", executable=str(ipopt))
+        solver = SolverFactory(
+            "ipopt", solver_io=args.solver_io, executable=str(ipopt)
+        )
         solver.options.update(
             {
                 "tol": 1e-6,
@@ -370,7 +379,11 @@ def main() -> int:
         )
         if args.nlp_scaling_method is not None:
             solver.options["nlp_scaling_method"] = args.nlp_scaling_method
-        solve_result = solver.solve(model, tee=args.tee, load_solutions=False)
+        solve_result = solver.solve(
+            model,
+            tee=args.tee,
+            load_solutions=False,
+        )
         load_error = None
         try:
             model.solutions.load_from(solve_result)

@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "experiment_id": "B-M5-BAKKEN-CROSS-VERSION-STATIONARITY-001",
+  "date": "2026-09-12",
+  "base_git_commit": "10d6b6d",
+  "branch": "codex/update-idaes-2.12",
+  "case": {
+    "model_code": 5,
+    "region": "Bakken",
+    "co2_tax_usd_per_kg": 0.0,
+    "checkpoint": "CISTAR_optimal_solution_Bakken_C_tax_0.0_M5_purge_0.01_sequential_solve.json.gz",
+    "scaling": "inherited legacy scaling",
+    "active_set_tolerance": 1e-7
+  },
+  "environments": [
+    {
+      "label": "candidate-a1",
+      "python": "3.10.8",
+      "idaes": "2.0.0.dev3",
+      "pyomo": "6.4.2"
+    },
+    {
+      "label": "phase-b",
+      "python": "3.10.8",
+      "idaes": "2.12.0",
+      "pyomo": "6.10.1"
+    }
+  ],
+  "identical_nlp_counts": {
+    "variables": 5555,
+    "constraints": 5618,
+    "equalities": 5547,
+    "active_inequalities": 4,
+    "active_variable_bounds": 171,
+    "jacobian_nonzeros": 34276
+  },
+  "cross_version_comparison": {
+    "maximum_checkpoint_result_difference": 0.0,
+    "candidate_a1_reduced_objective_gradient_norm_2": 0.6795241787737193,
+    "idaes_2_12_reduced_objective_gradient_norm_2": 0.679524178773727,
+    "reduced_objective_gradient_norm_difference": 7.66053886991358e-15,
+    "maximum_design_component_reduced_gradient_difference": 6.386557949156213e-14,
+    "state_jacobian_lu_u_diagonal_ratio_both_environments": 1.3057608352082396e18,
+    "generic_active_set_projection_difference": 0.0
+  },
+  "interpretation": [
+    "The archived state, NLP dimensions, sparsity count, active-set projection, and eight design-space reduced-gradient components are numerically indistinguishable across Candidate A1 and IDAES 2.12 at this point.",
+    "The state Jacobian is extremely ill-conditioned. The reduced-gradient magnitude is therefore diagnostic rather than a standalone optimality certificate.",
+    "The IDAES 2.12 failure cannot be attributed to a changed first derivative at the archived optimum. Differences away from the checkpoint, higher derivatives, serialization of solver state, or the Pyomo writer/solver path remain candidates."
+  ],
+  "nl_writer_control": {
+    "pyomo_6_10_solver_io": "nl_v1",
+    "linear_solver": "ma27",
+    "max_iterations": 1,
+    "iteration_zero_primal_infeasibility": 5.96e-8,
+    "iteration_one_unscaled_constraint_violation": 0.004277706146240234,
+    "iteration_one_dual_infeasibility": 101216.78766951896,
+    "termination": "maxIterations",
+    "assessment": "The legacy writer avoids the catastrophic first-step primal violation seen with MA57/default writer, but one iteration is not evidence of convergence."
+  },
+  "conclusion": "The modernization problem is a path-dependent numerical issue in an extremely ill-conditioned NLP, not a checkpoint-value or first-derivative mismatch at the archived optimum."
+}
