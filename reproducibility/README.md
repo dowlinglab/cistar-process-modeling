@@ -70,6 +70,21 @@ table, heat-exchanger table, composite-curve coordinates, liquid-product
 component flows and LHV contributions, and upstream emissions needed to audit
 Figures 6-8 and S6-S8 as well as Table S6.
 
+Audit either regional pre-solve state without invoking IPOPT:
+
+```bash
+python reproducibility/diagnose_m5_region_state.py \
+  --region EF-11 \
+  --output /path/outside/the/repository/m5-ef-11-state-diagnostics.json
+```
+
+Add `--initial-optimum` to inspect the archived target-region checkpoint. The
+report uses the diagnostics available in the historical IDAES commit and lists
+the largest constraint residuals, badly scaled free variables, variables near
+bounds, and variables or constraints without scaling factors. This is intended
+to distinguish a poor regional-substitution state from a feasible checkpoint
+that is no longer stationary under the reconstructed solver stack.
+
 Compare a completed regional run record with the archived stream and
 heat-integration sheets plus the numeric labels transcribed from Figures 6 and
 7:
