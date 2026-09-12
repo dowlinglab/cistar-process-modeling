@@ -14,6 +14,10 @@ import time
 from pathlib import Path
 from typing import Any
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 import idaes
 import pandas as pd
 import pyomo
@@ -43,7 +47,6 @@ from src.unit_initialization import (
 from src.utility_minimization_1d import min_utility
 
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_TAX_RATES = (0.0, 1e-5, 1e-3, 1.7e-2, 4.5e-2, 1.9e-1, 4.1e-1)
 IDAES_CANDIDATE_COMMIT = "66935c80a5aafc3ffc9ab3d387e488cddd4f233b"
 
