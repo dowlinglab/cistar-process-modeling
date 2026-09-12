@@ -56,6 +56,7 @@ def _build_preoptimization_model(
     model_code: int = 5,
     region: str = "Bakken",
     costing_tax: float = 0.0,
+    unit_initialization_region: str | None = None,
 ) -> Any:
     """Rebuild and load the published checkpoint chain before optimization."""
     model = create_flowsheet(model_code)
@@ -83,10 +84,13 @@ def _build_preoptimization_model(
         inlet_composition_dict=composition,
     )
 
+    unit_region = unit_initialization_region or region
     ms.from_json(
         model,
         fname=str(
-            _checkpoint(f"CISTAR_unit_initialization_{region}_M{model_code}.json.gz")
+            _checkpoint(
+                f"CISTAR_unit_initialization_{unit_region}_M{model_code}.json.gz"
+            )
         ),
     )
     update_model_after_initialization(model)
