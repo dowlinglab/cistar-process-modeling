@@ -19,11 +19,14 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 import idaes
+import numpy as np
 import pandas as pd
 import pyomo
+from scipy import sparse
 from idaes.core.util import model_serializer as ms
 from idaes.core.util.model_statistics import degrees_of_freedom
-from pyomo.environ import SolverFactory, value
+from idaes.core.util.scaling import get_jacobian
+from pyomo.environ import SolverFactory, Suffix, value
 
 from src.costing_function import add_costing, calculate_costs_for_objective
 from src.emissions_calculations import (
@@ -70,6 +73,58 @@ def _apply_modern_autoscaling(model: Any, norm: int) -> None:
             "Modern autoscaling requires an IDAES release that exposes AutoScaler."
         ) from err
     AutoScaler(overwrite=True).scale_model(model, norm=norm)
+
+
+def _clear_scaling_suffixes(model: Any) -> dict[str, int]:
+    """Clear inherited scaling metadata without changing transformed equations."""
+    suffixes = 0
+    entries = 0
+    for suffix in model.component_objects(Suffix, descend_into=True):
+        if suffix.local_name == "scaling_factor":
+            suffixes += 1
+            entries += len(suffix)
+            suffix.clear()
+    return {"suffixes_cleared": suffixes, "entries_cleared": entries}
+
+
+def _apply_active_nlp_autoscaling(model: Any, norm: int) -> dict[str, int]:
+    """Rebuild suffix scaling only for variables/constraints in the active NLP."""
+    try:
+        from idaes.core.scaling import AutoScaler
+        from idaes.core.scaling.util import set_scaling_factor
+    except ImportError as err:
+        raise RuntimeError(
+            "Active-NLP autoscaling requires an IDAES release that exposes AutoScaler."
+        ) from err
+
+    cleared = _clear_scaling_suffixes(model)
+    _, nlp = get_jacobian(model, scaled=False)
+    active_variables = list(nlp.vlist)
+    active_constraints = list(nlp.clist)
+
+    scaler = AutoScaler(overwrite=True)
+    for variable in active_variables:
+        scaler.scale_variables_by_magnitude(variable)
+    scaled_jacobian, scaled_nlp = get_jacobian(model, scaled=True)
+    if [item.name for item in scaled_nlp.clist] != [
+        item.name for item in active_constraints
+    ]:
+        raise RuntimeError("Active constraint ordering changed during scaling.")
+    row_norms = np.asarray(
+        sparse.linalg.norm(scaled_jacobian, ord=int(norm), axis=1)
+    ).reshape(-1)
+    for constraint, row_norm in zip(active_constraints, row_norms):
+        factor = 1.0 if row_norm <= scaler.config.zero_tolerance else 1.0 / row_norm
+        factor = min(
+            scaler.config.max_constraint_scaling_factor,
+            max(scaler.config.min_constraint_scaling_factor, factor),
+        )
+        set_scaling_factor(constraint, factor, overwrite=True)
+    return {
+        **cleared,
+        "active_variables_scaled": len(active_variables),
+        "active_constraints_scaled": len(active_constraints),
+    }
 
 
 def _checkpoint(name: str) -> Path:
@@ -276,12 +331,21 @@ def main() -> int:
         choices=("gradient-based", "user-scaling", "none"),
         help="Set Ipopt's nlp_scaling_method; omit to retain its default.",
     )
-    parser.add_argument(
+    scaling_group = parser.add_mutually_exclusive_group()
+    scaling_group.add_argument(
         "--modern-autoscale",
         action="store_true",
         help=(
             "Overwrite variable scaling by current magnitude and constraint "
             "scaling by Jacobian norm using the IDAES 2.12 AutoScaler."
+        ),
+    )
+    scaling_group.add_argument(
+        "--active-nlp-autoscale",
+        action="store_true",
+        help=(
+            "Clear inherited scaling suffixes, scale active NLP variables by "
+            "magnitude, and scale active constraints by Jacobian norm."
         ),
     )
     parser.add_argument("--autoscale-norm", type=int, default=2)
@@ -319,7 +383,12 @@ def main() -> int:
             "linear_solver": args.linear_solver,
             "nlp_scaling_method": args.nlp_scaling_method or "ipopt-default",
             "modern_autoscale": args.modern_autoscale,
-            "autoscale_norm": args.autoscale_norm if args.modern_autoscale else None,
+            "active_nlp_autoscale": args.active_nlp_autoscale,
+            "autoscale_norm": (
+                args.autoscale_norm
+                if args.modern_autoscale or args.active_nlp_autoscale
+                else None
+            ),
             "solver_io": args.solver_io,
         },
         "case": {"model_code": 5, "region": "Bakken"},
@@ -366,6 +435,11 @@ def main() -> int:
             }
         if args.modern_autoscale:
             _apply_modern_autoscaling(model, args.autoscale_norm)
+        active_nlp_scaling = None
+        if args.active_nlp_autoscale:
+            active_nlp_scaling = _apply_active_nlp_autoscaling(
+                model, args.autoscale_norm
+            )
         solver = SolverFactory(
             "ipopt", solver_io=args.solver_io, executable=str(ipopt)
         )
@@ -407,6 +481,7 @@ def main() -> int:
                 "solver_status": str(solve_result.solver.status),
                 "solver_message": str(solve_result.solver.message),
                 "solution_load_error": load_error,
+                "active_nlp_scaling": active_nlp_scaling,
                 "wall_seconds": time.time() - case_started,
                 "results_in_migrated_csv_units": fresh,
                 "difference_from_migrated_csv": comparison,

@@ -198,6 +198,18 @@ scaling-suffix keys for components absent from the exported NL and 1,750 keys
 whose component types cannot be exported; this points to explicit active-NLP
 scaling, rather than writer selection, as the next intervention.
 
+That intervention is available as the diagnostic-only
+`--active-nlp-autoscale` flag and recorded in
+`B-M5-BAKKEN-ACTIVE-NLP-SCALING-SCREEN-001`. It clears 7,638 inherited entries
+and rebuilds factors for exactly 5,555 active variables and 5,618 active
+constraints, eliminating all skipped-key writer warnings. The numerical result
+is substantially worse: the first MA57 step raises the unscaled constraint
+violation to `9.15e4`, and dual infeasibility remains `2.49e6` at iteration ten.
+Thus skipped suffix keys are not the cause, and this active-row policy is not a
+recommended scaling fix. The difference from the more stable whole-model
+AutoScaler control narrows the next comparison to how inequalities and
+inherited constraint factors are treated.
+
 ## Known provenance findings
 
 The published process/downstream emissions in Tables S4-S6 and Figures 3 and 6
