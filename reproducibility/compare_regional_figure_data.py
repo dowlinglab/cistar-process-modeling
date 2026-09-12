@@ -372,13 +372,19 @@ def main() -> int:
         default=REPO_ROOT / "reproducibility" / "published_reference.json",
     )
     parser.add_argument("--output", type=Path)
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Write the output file without printing the full JSON report.",
+    )
     args = parser.parse_args()
 
     record = json.loads(args.run_record.read_text(encoding="utf-8"))
     reference = json.loads(args.reference.read_text(encoding="utf-8"))
     report = compare_record(record, args.workbook, reference)
     rendered = json.dumps(report, indent=2, sort_keys=True)
-    print(rendered)
+    if not args.quiet:
+        print(rendered)
     if args.output is not None:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(rendered + "\n", encoding="utf-8")

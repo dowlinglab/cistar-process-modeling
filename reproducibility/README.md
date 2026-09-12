@@ -92,7 +92,8 @@ heat-integration sheets plus the numeric labels transcribed from Figures 6 and
 ```bash
 python reproducibility/compare_regional_figure_data.py \
   --run-record /path/outside/the/repository/m5-regions.json \
-  --output /path/outside/the/repository/m5-regions-comparison.json
+  --output /path/outside/the/repository/m5-regions-comparison.json \
+  --quiet
 ```
 
 The comparison reports numerical table differences separately from unit-label
