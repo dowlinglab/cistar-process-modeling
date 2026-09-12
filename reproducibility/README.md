@@ -164,6 +164,32 @@ and refrigerated water from 288-303 K. The `migrated` snapshot uses the CSV file
 under `results/` that arrived in the initial public migration commit `2295e03`.
 Neither snapshot is silently treated as the paper.
 
+To test whether two IDAES/Pyomo environments construct the same nonlinear NLP
+away from an archived point, generate a detailed derivative fingerprint in
+each environment and compare the resulting files by component name:
+
+```bash
+python reproducibility/fingerprint_m5_bakken_derivatives.py \
+  --perturb H105_temperature=1.0 \
+  --output /path/outside/the/repository/fingerprint.json \
+  --detail-output /path/outside/the/repository/fingerprint.npz
+
+python reproducibility/compare_derivative_fingerprints.py \
+  /path/to/reference.npz /path/to/candidate.npz \
+  --output /path/outside/the/repository/comparison.json
+```
+
+The comparison aligns all variables and constraints by name and canonicalizes
+the Hessian triangle before reporting sparsity and scale-aware differences.
+Record `B-M5-BAKKEN-PERTURBED-DERIVATIVE-COMPARISON-001` finds matching named
+NLPs and derivative sparsity under Candidate A1 and IDAES 2.12. At the archived
+tax-zero M5/Bakken point with H105 displaced by 1 K, no Jacobian or Lagrangian
+Hessian entry differs by more than `1e-10` on the recorded scale-aware metric.
+Together with the checkpoint stationarity control, this makes a changed model
+equation or higher derivative an unsupported explanation for the modern solve
+failure. Writer/solver path sensitivity amplified by the severely conditioned
+state Jacobian remains the leading diagnosis.
+
 ## Known provenance findings
 
 The published process/downstream emissions in Tables S4-S6 and Figures 3 and 6
