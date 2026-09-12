@@ -148,12 +148,16 @@ def _curves_from_heat_table(
     heating_outlet = (
         rows.loc["T outlet", heating].astype(float).to_numpy() + 1.0
     )
-    heating_duty = rows.loc["Heat duty", heating].astype(float).to_numpy()
+    heating_duty = (
+        rows.loc["Heat duty", heating].astype(float).to_numpy() * 3.6e-6
+    )
     cooling_inlet = (
         rows.loc["T inlet", cooling].astype(float).to_numpy() + 1.0
     )
     cooling_outlet = rows.loc["T outlet", cooling].astype(float).to_numpy()
-    cooling_duty = rows.loc["Heat duty", cooling].astype(float).to_numpy()
+    cooling_duty = (
+        rows.loc["Heat duty", cooling].astype(float).to_numpy() * 3.6e-6
+    )
 
     hot_temperature, hot_heat = _gen_curves(
         cooling_inlet, cooling_outlet, cooling_duty
@@ -180,20 +184,41 @@ def _compare_curves(
 ) -> dict[str, Any]:
     result = {}
     for side in ("hot", "cold"):
-        fresh_temperature = fresh[side]["temperature_k"]
-        archived_temperature = archived[side]["temperature_k"]
-        fresh_heat = fresh[side]["cumulative_heat_gj_per_hour"]
-        archived_heat = archived[side]["cumulative_heat_gj_per_hour"]
-        paired_temperature = zip(fresh_temperature, archived_temperature)
-        paired_heat = zip(fresh_heat, archived_heat)
+        fresh_temperature = np.asarray(fresh[side]["temperature_k"], dtype=float)
+        archived_temperature = np.asarray(
+            archived[side]["temperature_k"], dtype=float
+        )
+        fresh_heat = np.asarray(
+            fresh[side]["cumulative_heat_gj_per_hour"], dtype=float
+        )
+        archived_heat = np.asarray(
+            archived[side]["cumulative_heat_gj_per_hour"], dtype=float
+        )
+        comparison_grid = np.unique(
+            np.concatenate((fresh_temperature, archived_temperature))
+        )
+        fresh_interpolated = np.interp(
+            comparison_grid, fresh_temperature, fresh_heat
+        )
+        archived_interpolated = np.interp(
+            comparison_grid, archived_temperature, archived_heat
+        )
+        nearest_knot_distances = [
+            min(abs(point - archived_temperature))
+            for point in fresh_temperature
+        ] + [
+            min(abs(point - fresh_temperature))
+            for point in archived_temperature
+        ]
         result[side] = {
             "fresh_point_count": len(fresh_temperature),
             "archived_point_count": len(archived_temperature),
-            "maximum_temperature_difference_k": max(
-                (abs(a - b) for a, b in paired_temperature), default=None
+            "comparison_grid_point_count": len(comparison_grid),
+            "maximum_nearest_knot_distance_k": max(
+                nearest_knot_distances, default=None
             ),
-            "maximum_heat_difference_gj_per_hour": max(
-                (abs(a - b) for a, b in paired_heat), default=None
+            "maximum_heat_difference_gj_per_hour": float(
+                np.max(abs(fresh_interpolated - archived_interpolated))
             ),
         }
     return result
