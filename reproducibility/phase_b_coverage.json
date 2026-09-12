@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "phase": "B",
+  "assessment_date": "2026-09-12",
+  "modern_environment": {
+    "idaes": "2.12.0",
+    "pyomo": "6.10.1",
+    "ipopt": "3.14.19",
+    "hsl_solvers_tested": ["ma27", "ma57"],
+    "default_writer_policy": "Inline NL defined variables (export_defined_variables=false).",
+    "exceptions": "EF-Basin and EF-9 additionally request the digest-verified Candidate A1 variable order under sort-symbols; both still start from the published preoptimization path rather than their archived target optimum."
+  },
+  "pr_gate": {
+    "ready_for_review": true,
+    "merge_ready": false,
+    "basis": "All 22 published figures and tables retain an explicit Phase B disposition; ten Bakken optimization cases plus the EF-Basin base and twelve zones have accepted fresh modern paths, and detailed figure inputs are compared with the surviving workbook where recorded.",
+    "does_not_claim": [
+      "The paper and public repository share an identical emissions-normalization equation or optimization snapshot.",
+      "Byte-identical publication PDFs or original source artwork for the two schematics.",
+      "The EF-Basin and EF-9 ordering exceptions are a robust representation-independent scaling solution.",
+      "The alternate EF-10 state reproduces every printed Figure 7 label exactly.",
+      "An uninterrupted MA57 convergence result for EF-Basin."
+    ]
+  },
+  "evidence": {
+    "historical_coverage": "reproducibility/phase_a_coverage.json",
+    "bakken_fresh_solve_and_figure_comparison": "B-BAKKEN-FRESH-FIGURE-COMPARISON-001",
+    "regional_fresh_solves": "B-M5-REGIONAL-DEFINED-VARIABLE-INLINING-001",
+    "regional_fresh_figure_comparison": "B-M5-REGIONAL-FRESH-FIGURE-COMPARISON-001",
+    "ef_basin_fresh_solve_and_figure_comparison": "B-M5-EF-BASIN-FRESH-ORDERING-CONTROLS-001",
+    "source_table_audit": "reproducibility/audit_source_tables.py",
+    "published_table_audit": "reproducibility/audit_published_tables.py"
+  },
+  "items": [
+    {"id": "F1", "status": "manual_noncomputational", "assessment": "Publication process artwork; topology reviewed in Phase A and unchanged by the modern computational replay."},
+    {"id": "F2", "status": "manual_noncomputational", "assessment": "Publication workflow artwork; historical sequence reviewed in Phase A and unchanged by the modern computational replay."},
+    {"id": "F3", "status": "fresh_inputs_with_published_difference", "assessment": "Fresh M2-M5 upstream and process emissions are extracted and compared with printed bars. All four retain EMISSIONS-NORMALIZATION-001; fresh detailed states reproduce the surviving workbook."},
+    {"id": "F4", "status": "fresh_inputs_reproduced", "assessment": "Fresh M5/Bakken USD 45/tonne heat-integration table and composite-curve coordinates closely match the archived workbook. The archived figure itself was regenerated in Phase A."},
+    {"id": "F5", "status": "fresh_inputs_reproduced", "assessment": "Fresh costed-initialization M5 tax zero plus all six positive-tax continuation points terminate optimally, including 190-to-410 without archived restarts. MSP differences from migrated CSV do not exceed 1.91e-9 USD/MJ; printed table snapshot differences remain classified."},
+    {"id": "F6", "status": "fresh_inputs_with_published_difference", "assessment": "All twelve EF zones and the fresh EF-Basin base have accepted modern solve paths. Printed upstream/process emissions retain EMISSIONS-NORMALIZATION-001; EF-10 has separate fresh-state drift."},
+    {"id": "F7", "status": "fresh_inputs_with_classified_exceptions", "assessment": "Fresh component LHV series are extracted for the thirteen regional cases. EF-7 retains PUBLISHED-SNAPSHOT-DRIFT-001; EF-10's 0.78 MW label miss is a distinct fresh-solution difference. Other regional labels round correctly."},
+    {"id": "F8", "status": "fresh_inputs_with_published_difference", "assessment": "Fresh regional MSP inputs cover EF-Basin and all twelve zones. Figure S5 feed-composition inputs are source-only and reproducible; EF-10 and publication-snapshot differences are retained rather than relabeled as exact matches."},
+    {"id": "FS1", "status": "fresh_inputs_reproduced", "assessment": "Fresh M2-M5 liquid-product component flows are extracted; all four total flows round to the printed labels."},
+    {"id": "FS2", "status": "fresh_inputs_reproduced", "assessment": "Fresh M2-M5 C4+ olefin fractions round to every printed two-decimal label."},
+    {"id": "FS3", "status": "fresh_inputs_reproduced", "assessment": "Fresh M2-M4 heat-integration tables and composite-curve coordinates closely match their archived workbook sheets."},
+    {"id": "FS4", "status": "fresh_inputs_reproduced", "assessment": "All seven fresh M5/Bakken tax-point heat-integration tables and composite curves are compared with the archived workbook; the largest hot-curve heat difference is 0.052 GJ/h at USD 190/tonne."},
+    {"id": "FS5", "status": "source_input_reproduced", "assessment": "The regional shale feed-composition chart is input-data driven; the archived-source regeneration and component fractions were audited in Phase A. IDAES version does not change this source-only artifact."},
+    {"id": "FS6", "status": "fresh_inputs_reproduced_with_solver_path_variation", "assessment": "Fresh EF-1 through EF-6 curves are compared with the archived workbook. EF-2 has a 0.644 GJ/h maximum hot-curve difference while retaining an accepted optimization result."},
+    {"id": "FS7", "status": "fresh_inputs_reproduced_with_solver_path_variation", "assessment": "Fresh EF-7 through EF-12 curves are compared with the workbook. EF-10 differs by as much as 3.76 GJ/h in the hot curve; EF-9 requires the historical-order control."},
+    {"id": "FS8", "status": "fresh_inputs_reproduced_with_ordering_control", "assessment": "The fresh EF-Basin base from costed initialization matches the archived heat curve within 0.0103 GJ/h with historical ordering; inlining-only MA27 reaches a distinct local solution."},
+    {"id": "TS1", "status": "source_audited_with_implementation_discrepancy", "assessment": "Published decision bounds are source-audited. The printed H104 bound is not applied by the surviving optimization source; this is not silently fixed during modernization."},
+    {"id": "TS2", "status": "source_audited_with_gaps", "assessment": "Source constants are audited. Utility-price split is explained by postprocessing; methane recovery fraction and GWP have no semantic public source and remain provenance gaps."},
+    {"id": "TS3", "status": "source_input_reproduced", "assessment": "All regional upstream emissions factors match their checked-in CSV inputs and printed SI values."},
+    {"id": "TS4", "status": "fresh_inputs_with_published_difference", "assessment": "All M2-M5 Bakken solves and detailed inputs reproduce the surviving numerical snapshot. Printed process emissions and selected SI rounding/snapshot values retain classified differences."},
+    {"id": "TS5", "status": "fresh_inputs_with_published_difference", "assessment": "All seven M5/Bakken tax cases terminate optimally from a fresh base and match migrated CSV metrics closely; printed emissions and selected SI snapshot differences persist."},
+    {"id": "TS6", "status": "fresh_inputs_with_classified_exceptions", "assessment": "Fresh EF-Basin and twelve regional optimization paths are accepted, with ordering controls for the base and EF-9. EF-10 has measurable solver-path drift, while printed emissions and SI snapshot differences remain classified."}
+  ]
+}

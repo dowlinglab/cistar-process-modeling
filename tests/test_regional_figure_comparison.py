@@ -14,10 +14,22 @@ from compare_regional_figure_data import (  # noqa: E402
     _gen_curves,
     _workbook_region,
 )
+from compare_bakken_figure_data import _case_sheet, _run_tax_rate  # noqa: E402
+from regenerate_composite_curves import CurveCase  # noqa: E402
 from src.result_extraction import dataframe_payload as _dataframe_payload  # noqa: E402
 
 
 class RegionalFigureComparisonTests(unittest.TestCase):
+    def test_bakken_sheet_lookup_uses_recorded_tax_token(self):
+        cases = [CurveCase("HI_M5_tax=1e-05_Bakken_optimal", 5, "1e-05", 1e-5, "Bakken")]
+        self.assertEqual(_case_sheet(cases, 5, 1e-5).tax_token, "1e-05")
+        with self.assertRaises(ValueError):
+            _case_sheet(cases, 3, 1e-5)
+
+    def test_bakken_tax_rate_works_for_series_and_single_case_records(self):
+        self.assertEqual(_run_tax_rate({"case": {}}, {"co2_tax_usd_per_kg": 0.045}), 0.045)
+        self.assertEqual(_run_tax_rate({"case": {"co2_tax_usd_per_kg": 0.045}}, {}), 0.045)
+
     def test_dataframe_payload_preserves_trace_float_precision(self):
         trace_value = 1.260558903831854e-14
         payload = _dataframe_payload(

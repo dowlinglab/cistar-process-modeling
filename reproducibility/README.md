@@ -12,6 +12,8 @@ snapshots and future reruns.
   notebook, archived data, and required comparison method.
 - `phase_a_coverage.json` gives the final evidence-backed disposition of all 22
   published figures and tables and states the Phase A PR gate limitations.
+- `phase_b_coverage.json` gives the modern IDAES disposition of those same 22
+  artifacts, including explicit publication-snapshot and solver-path caveats.
 - `audit_published_tables.py` compares Tables S4-S6 with the two checked-in CSV
   families.
 - `audit_source_tables.py` compares the model inputs in Tables S1-S3 with the
@@ -345,7 +347,8 @@ an alternate optimum. EF-10 retains the largest small path discrepancy: an
 unscaled constraint violation of `5.72e-6`, an R102-temperature difference of
 `5.69e-2` K, and a TAC difference of 6,182 USD/year.
 
-EF-9 is the sole ordering-sensitive exception. Its inlining-only MA27 path was
+EF-9 is the sole ordering-sensitive exception among EF-1 through EF-12. Its
+inlining-only MA27 path was
 stopped after 19 minutes in restoration, and MA57 reached its 100-iteration
 limit with unscaled constraint and dual infeasibilities of `0.821` and `33.9`.
 Inlining plus the digest-verified Candidate A1 column-order request reaches an
@@ -371,6 +374,75 @@ material stream-table difference and 3.76 GJ/h maximum hot-curve heat shift.
 Figure 6's printed emissions retain `EMISSIONS-NORMALIZATION-001` for every
 region. The comparison does not turn a reproduced archived plot into proof that
 the fresh solution and printed paper are exactly identical.
+
+The analogous fresh Bakken comparison is recorded in
+`B-BAKKEN-FRESH-FIGURE-COMPARISON-001`. M2-M4 and the entire seven-point
+M5/Bakken sequence were rerun with the shared numerical figure extractor.
+The M5 run begins at tax zero from costed initialization and carries each
+fresh state into the next tax point; all seven end optimally, including the
+190-to-410 USD/tonne transition. Across the ten fresh cases the largest
+material stream-table difference is `1.35e-5` at M5/190 USD/tonne, and the
+largest hot-curve heat difference is `0.052` GJ/h at the same point. The
+Figure S1 liquid-flow and Figure S2 C4+ composition values round to the
+printed M2-M5 labels. The Figure 3 emissions normalization discrepancy remains
+explicit. EF-Basin's separate regional-base optimization is assessed below.
+
+Compare a fresh ROK or M5/Bakken tax record against its workbook sheets and
+printed ROK labels without overwriting the archived workbook:
+
+```bash
+python reproducibility/compare_bakken_figure_data.py \
+  --run-record /path/outside/the/repository/rok-or-tax-with-figure-data.json \
+  --output /path/outside/the/repository/bakken-figure-comparison.json
+```
+
+The EF-Basin regional-base gate is recorded in
+`B-M5-EF-BASIN-FRESH-ORDERING-CONTROLS-001`. Starting from the ordinary
+EF-Basin costed initialization, with the notebook's 593 K H103 perturbation
+and no archived optimal restart, inlining-only MA27 reaches a valid but
+different local optimum. Its MSP differs from the migrated result by
+`-2.53e-6` USD/MJ and its detailed heat-integration curve moves by up to
+3.80 GJ/h. Adding the historical column-order control recovers the archived
+branch: MSP differs by `2.22e-10` USD/MJ, R102 temperature by `6.60e-4` K,
+and the hot curve by at most `0.0103` GJ/h. MA57 with inlining only did not
+recover it; an operator interrupt was sent after a prolonged run and its
+returned record reported `maxIterations`, so no uninterrupted MA57 iteration
+claim is made. The historical ordering is thus needed for EF-Basin and EF-9,
+while the other eleven regions and all ten Bakken cases use inlining alone.
+
+For the modern ordering exceptions, first use the reconstructed Candidate A1
+environment (`environment/candidate-a1-macos-arm64.yml`) to export a historical
+M5/Bakken symbol map outside the repository:
+
+```bash
+python reproducibility/export_m5_nl_symbol_map.py \
+  --file-determinism sort-symbols \
+  --nl-output /path/outside/the/repository/candidate-a1-m5.nl \
+  --output /path/outside/the/repository/candidate-a1-m5-map.json
+```
+
+Then, in the IDAES 2.12 environment
+(`environment/phase-b-idaes-2.12-macos-arm64.yml`), reproduce the two
+ordering-sensitive cases without using an archived target optimum:
+
+```bash
+python reproducibility/run_m5_region.py \
+  --region EF-Basin --ipopt /absolute/path/to/hsl-enabled/ipopt \
+  --linear-solver ma27 --inline-defined-variables \
+  --file-determinism sort-symbols \
+  --column-order-from-symbol-map /path/outside/the/repository/candidate-a1-m5-map.json \
+  --output /path/outside/the/repository/ef-basin-modern.json
+
+python reproducibility/run_m5_region_series.py \
+  --regions EF-9 --ipopt /absolute/path/to/hsl-enabled/ipopt \
+  --linear-solver ma27 --inline-defined-variables \
+  --file-determinism sort-symbols \
+  --column-order-from-symbol-map /path/outside/the/repository/candidate-a1-m5-map.json \
+  --output /path/outside/the/repository/ef9-modern.json
+```
+
+The map loader verifies the variable-name set and digest before a solve. Keep
+the large diagnostic NL and figure-data records outside the Git repository.
 
 ## Known provenance findings
 

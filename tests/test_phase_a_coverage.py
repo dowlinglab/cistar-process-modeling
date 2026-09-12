@@ -35,6 +35,28 @@ class PhaseACoverageTests(unittest.TestCase):
         for required in ("EF-2", "EF-8", "EF-10", "EF-11", "IPOPT"):
             self.assertIn(required, combined + " " + coverage["historical_environment"]["limitation"])
 
+    def test_modern_coverage_preserves_manifest_and_exceptions(self):
+        manifest = json.loads(
+            (REPO_ROOT / "reproducibility" / "result_manifest.json").read_text()
+        )
+        coverage = json.loads(
+            (REPO_ROOT / "reproducibility" / "phase_b_coverage.json").read_text()
+        )
+        expected = [
+            item["id"]
+            for section in ("main_figures", "supporting_figures", "supporting_tables")
+            for item in manifest[section]
+        ]
+        self.assertEqual([item["id"] for item in coverage["items"]], expected)
+        self.assertTrue(coverage["pr_gate"]["ready_for_review"])
+        self.assertFalse(coverage["pr_gate"]["merge_ready"])
+        content = json.dumps(coverage)
+        for required in (
+            "EF-Basin", "EF-9", "EF-10", "EMISSIONS-NORMALIZATION-001",
+            "PUBLISHED-SNAPSHOT-DRIFT-001",
+        ):
+            self.assertIn(required, content)
+
 
 if __name__ == "__main__":
     unittest.main()

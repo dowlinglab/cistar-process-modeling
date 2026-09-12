@@ -20,12 +20,14 @@ from idaes.core.util.model_statistics import degrees_of_freedom
 from pyomo.environ import SolverFactory
 
 from run_m5_bakken_tax_series import (
+    FileDeterminism,
     IDAES_CANDIDATE_COMMIT,
     REPO_ROOT,
     _build_preoptimization_model,
     _checkpoint,
     _collect_results,
     _configure_solver_environment,
+    _load_column_order,
     _solver_version,
     _write_report,
 )
@@ -156,6 +158,12 @@ def main() -> int:
         action="store_true",
         help="Set export_defined_variables=false for the modern Pyomo NL writer.",
     )
+    parser.add_argument(
+        "--file-determinism",
+        choices=("ordered", "sort-indices", "sort-symbols"),
+        default="ordered",
+    )
+    parser.add_argument("--column-order-from-symbol-map", type=Path)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
 
@@ -167,6 +175,12 @@ def main() -> int:
     )
     report["environment"]["inline_defined_variables"] = (
         args.inline_defined_variables
+    )
+    report["environment"]["file_determinism"] = args.file_determinism
+    report["environment"]["column_order_from_symbol_map"] = (
+        str(args.column_order_from_symbol_map.resolve())
+        if args.column_order_from_symbol_map is not None
+        else None
     )
     model = _build_preoptimization_model(
         model_code=5,
@@ -192,6 +206,13 @@ def main() -> int:
         report["initialization_chain"].append(checkpoint.name)
         report["archived_initial_optimum"] = checkpoint.name
         perturbation = None
+
+    column_order = None
+    if args.column_order_from_symbol_map is not None:
+        column_order, column_digest = _load_column_order(
+            model, args.column_order_from_symbol_map
+        )
+        report["environment"]["requested_column_order_sha256"] = column_digest
 
     report["build_seconds"] = time.time() - started
     report["status"] = "running"
@@ -224,6 +245,13 @@ def main() -> int:
             if args.inline_defined_variables
             else {}
         )
+        writer_options["file_determinism"] = {
+            "ordered": FileDeterminism.ORDERED,
+            "sort-indices": FileDeterminism.SORT_INDICES,
+            "sort-symbols": FileDeterminism.SORT_SYMBOLS,
+        }[args.file_determinism]
+        if column_order is not None:
+            writer_options["column_order"] = column_order
         solve_result = solver.solve(model, tee=args.tee, **writer_options)
     except KeyboardInterrupt:
         report["run"] = {

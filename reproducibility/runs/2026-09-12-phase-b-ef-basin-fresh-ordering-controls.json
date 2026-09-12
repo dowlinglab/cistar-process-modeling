@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "experiment_id": "B-M5-EF-BASIN-FRESH-ORDERING-CONTROLS-001",
+  "purpose": "Test the EF-Basin regional-base optimization from its ordinary costed initialization under IDAES 2.12 without loading an archived optimum, and distinguish solver/order-sensitive local solutions.",
+  "initialization_chain": ["CISTAR_unit_initialization_Bakken_M5.json.gz", "CISTAR_solve_constrained_EF-Basin_M5_purge_0.01.json.gz", "CISTAR_solve_with_costing_EF-Basin_C_tax_0.045_M5_purge_0.01.json.gz"],
+  "notebook_temperature_perturbation_k": 593,
+  "common_case": {"idaes": "2.12.0", "pyomo": "6.10.1", "ipopt": "3.14.19", "co2_tax_usd_per_tonne": 45, "inline_defined_variables": true},
+  "controls": [
+    {
+      "policy": "MA27 with inlining only",
+      "termination_condition": "optimal",
+      "wall_seconds": 149.3907709121704,
+      "classification": "accepted_alternate_local_solution",
+      "difference_from_migrated_csv": {"MSP_usd_per_mj": -0.0000025307784379449, "T_R102_k": 0.048676234768549875, "TAC_usd_per_year": -8841.20011523366},
+      "maximum_detailed_differences": {"stream_table_material_relative": 0.01332013807646065, "heat_exchanger_table_material_relative": 0.683994626391865, "hot_curve_heat_gj_per_hour": 3.8014927527859186, "cold_curve_heat_gj_per_hour": 1.6460052937472938}
+    },
+    {
+      "policy": "MA27 with inlining, sort-symbols, and digest-verified Candidate A1 column-order request",
+      "termination_condition": "optimal",
+      "wall_seconds": 161.5822241306305,
+      "requested_column_order_sha256": "ffbb0f542b183207539008a4c27a8e28ad6a0d4c61f80f002ca01f55e58a611c",
+      "classification": "reproduces_archived_local_solution",
+      "difference_from_migrated_csv": {"MSP_usd_per_mj": 2.2172611836845935e-10, "T_R102_k": 0.0006596828355895923, "TAC_usd_per_year": 250.60675317049026},
+      "maximum_detailed_differences": {"stream_table_material_relative": 0.0000028264293525764177, "heat_exchanger_table_material_relative": 0.0001585344537429054, "hot_curve_heat_gj_per_hour": 0.010231492848788548, "cold_curve_heat_gj_per_hour": 0.0003932961402597357}
+    },
+    {
+      "policy": "MA57 with inlining only and 500-iteration cap",
+      "termination_condition": "maxIterations",
+      "wall_seconds": 656.7671201229095,
+      "classification": "not_reproduced",
+      "operator_signal_note": "An operator SIGINT was sent to the verified IPOPT child after a prolonged run; the returned Pyomo record reports maxIterations. Without a tee iteration trace, do not infer exact iteration count or an uninterrupted 500-iteration trajectory.",
+      "difference_from_migrated_csv": {"MSP_usd_per_mj": -0.0008009440671703782, "T_R102_k": -153.53584937662288, "TAC_usd_per_year": 42884497.40420717}
+    }
+  ],
+  "source_records": [
+    "/private/tmp/cistar-phase-b-m5-ef-basin-fresh-inline-ma27.json",
+    "/private/tmp/cistar-phase-b-m5-ef-basin-fresh-inline-ma57.json",
+    "/private/tmp/cistar-phase-b-m5-ef-basin-fresh-inline-historical-columns-ma27.json"
+  ],
+  "figure_comparison_outputs": [
+    "/private/tmp/cistar-phase-b-m5-ef-basin-fresh-figure-comparison.json",
+    "/private/tmp/cistar-phase-b-m5-ef-basin-fresh-historical-columns-figure-comparison.json"
+  ],
+  "conclusion": "The separate fresh EF-Basin gate is reproducible with inlining plus the historical-order control. It joins EF-9 as a narrow ordering-sensitive regional exception; the other eleven regional zones and all Bakken ROK/tax cases use inlining alone. The inlining-only MA27 alternate optimum and MA57 nonreproduction remain visible."
+}
