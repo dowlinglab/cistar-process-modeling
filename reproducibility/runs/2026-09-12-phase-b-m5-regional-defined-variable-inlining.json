@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "experiment_id": "B-M5-REGIONAL-DEFINED-VARIABLE-INLINING-001",
+  "purpose": "Reproduce all twelve M5 regional optimization cases under IDAES 2.12 and identify any case requiring more than the Bakken inlining-only writer policy.",
+  "common_case": {
+    "idaes": "2.12.0",
+    "pyomo": "6.10.1",
+    "ipopt": "3.14.19",
+    "co2_tax_usd_per_tonne": 45,
+    "model_code": 5,
+    "inline_defined_variables": true,
+    "default_file_determinism": "ordered",
+    "default_linear_solver": "ma27",
+    "restart_rule": "Reload the archived EF-Basin optimum before each region except EF-9, which follows the publication notebook and reloads EF-8."
+  },
+  "inlining_only_runs": [
+    {"region": "EF-1", "termination_condition": "optimal", "wall_seconds": 199.08501195907593, "difference_from_migrated_csv": {"MSP_usd_per_mj": 3.1668192373990323e-12, "T_R102_k": 0.0004848922694691282, "TAC_usd_per_year": 663.377228975296}},
+    {"region": "EF-2", "termination_condition": "optimal", "wall_seconds": 193.37632584571838, "difference_from_migrated_csv": {"MSP_usd_per_mj": -8.991074881142813e-10, "T_R102_k": 0.011087656548625091, "TAC_usd_per_year": 1263.944575637579}},
+    {"region": "EF-3", "termination_condition": "optimal", "wall_seconds": 200.78846168518066, "difference_from_migrated_csv": {"MSP_usd_per_mj": 3.320997990496899e-12, "T_R102_k": 0.00017038388705259422, "TAC_usd_per_year": 435.9948742687702}},
+    {"region": "EF-4", "termination_condition": "optimal", "wall_seconds": 201.42045187950134, "difference_from_migrated_csv": {"MSP_usd_per_mj": 2.973931864658219e-12, "T_R102_k": 0.00028589369196652115, "TAC_usd_per_year": 435.96805211901665}},
+    {"region": "EF-5", "termination_condition": "optimal", "wall_seconds": 201.16727709770203, "difference_from_migrated_csv": {"MSP_usd_per_mj": 2.9500395182235906e-12, "T_R102_k": -0.00011457545519988344, "TAC_usd_per_year": 436.01690059900284}},
+    {"region": "EF-6", "termination_condition": "optimal", "wall_seconds": 200.1799919605255, "difference_from_migrated_csv": {"MSP_usd_per_mj": 1.938477156571139e-12, "T_R102_k": -0.0001846873810791294, "TAC_usd_per_year": -262.4600574672222}},
+    {"region": "EF-7", "termination_condition": "optimal", "wall_seconds": 196.00893831253052, "difference_from_migrated_csv": {"MSP_usd_per_mj": 7.786772962536936e-12, "T_R102_k": -0.0004136429740810854, "TAC_usd_per_year": -243.63788652420044}},
+    {"region": "EF-8", "termination_condition": "optimal", "wall_seconds": 212.31097316741943, "difference_from_migrated_csv": {"MSP_usd_per_mj": 2.182654849046395e-08, "T_R102_k": 0.0022615996298327445, "TAC_usd_per_year": 9.346616297960281}},
+    {"region": "EF-9", "termination_condition": "interrupted_by_operator", "wall_seconds": 1157.4439549446106, "note": "The MA27 trajectory entered restoration and continued moving away from the archived optimum; it was stopped after 19 minutes."},
+    {"region": "EF-10", "termination_condition": "optimal", "wall_seconds": 215.04183793067932, "unscaled_constraint_violation": 5.72e-06, "difference_from_migrated_csv": {"MSP_usd_per_mj": 9.183892042512187e-08, "T_R102_k": 0.05685893091390426, "TAC_usd_per_year": 6181.904662370682}},
+    {"region": "EF-11", "termination_condition": "optimal", "wall_seconds": 215.3886480331421, "difference_from_migrated_csv": {"MSP_usd_per_mj": -9.42249767793557e-10, "T_R102_k": -0.0004078648644281202, "TAC_usd_per_year": -795.4272826910019}},
+    {"region": "EF-12", "termination_condition": "optimal", "wall_seconds": 208.85782194137573, "difference_from_migrated_csv": {"MSP_usd_per_mj": 1.4459232422492363e-12, "T_R102_k": 0.00012116788047933369, "TAC_usd_per_year": 294.0406113266945}}
+  ],
+  "ef9_controls": [
+    {
+      "policy": "Inlining only with MA57",
+      "termination_condition": "maxIterations",
+      "iterations": 100,
+      "wall_seconds": 581.632082939148,
+      "unscaled_constraint_violation": 0.821082,
+      "unscaled_dual_infeasibility": 33.8508,
+      "difference_from_migrated_csv": {"MSP_usd_per_mj": 0.000027230162580440045, "T_R102_k": 0.2494225474194991, "TAC_usd_per_year": 388032.0255071223}
+    },
+    {
+      "policy": "Inlining plus sort-symbols and Candidate A1 historical column-order request with MA27",
+      "termination_condition": "optimal",
+      "wall_seconds": 200.524028301239,
+      "requested_column_order_sha256": "ffbb0f542b183207539008a4c27a8e28ad6a0d4c61f80f002ca01f55e58a611c",
+      "difference_from_migrated_csv": {"MSP_usd_per_mj": -2.942300257602337e-09, "T_R102_k": -0.0034287815433344804, "TAC_usd_per_year": -505.33924424648285}
+    }
+  ],
+  "maximum_absolute_differences": {
+    "inlining_only_accepted_regions": {"MSP_usd_per_mj": 9.183892042512187e-08, "T_R102_k": 0.05685893091390426, "TAC_usd_per_year": 6181.904662370682},
+    "ef9_historical_order_control": {"MSP_usd_per_mj": 2.942300257602337e-09, "T_R102_k": 0.0034287815433344804, "TAC_usd_per_year": 505.33924424648285}
+  },
+  "implementation_compatibility_fix": "Region cleanup now resolves block components by name and skips absent generated index sets because Pyomo 6.10 does not register every generated index set that Pyomo 6.4 registered.",
+  "conclusions": [
+    "Eleven of twelve regional cases reach IPOPT optimal termination with defined-variable inlining alone; this includes EF-2 and EF-11, which failed on the reconstructed historical stack, and EF-8, which previously reached an alternate optimum.",
+    "EF-10 has the largest accepted numerical drift and an unscaled constraint violation of 5.72e-6, so it is retained as a small solver-path discrepancy rather than described as a strict numerical match.",
+    "EF-9 is uniquely sensitive to emitted variable order: neither MA27 nor MA57 completes under inlining alone, while the digest-verified Candidate A1 column-order control reaches the archived branch and closely reproduces the migrated result.",
+    "The recommended modern policy remains inlining only, with the historical column-order request isolated as an explicit EF-9 compatibility exception rather than a global dependency."
+  ],
+  "source_artifacts": [
+    "/private/tmp/cistar-phase-b-m5-regional-inline-ma27.json",
+    "/private/tmp/cistar-phase-b-m5-ef10-12-inline-ma27.json",
+    "/private/tmp/cistar-phase-b-m5-ef9-inline-ma27-tee.json",
+    "/private/tmp/cistar-phase-b-m5-ef9-inline-ma57-tee.json",
+    "/private/tmp/cistar-phase-b-m5-ef9-inline-historical-columns-ma27.json"
+  ]
+}

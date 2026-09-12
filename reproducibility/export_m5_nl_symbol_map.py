@@ -91,6 +91,7 @@ def export_symbol_map(
     nl_output: Path,
     determinism: str,
     column_order_path: Path | None = None,
+    inline_defined_variables: bool = False,
 ) -> dict[str, Any]:
     model = _build_preoptimization_model(5, "Bakken", 0.0)
     unfix_DOFs_pre_optimization(model)
@@ -106,6 +107,8 @@ def export_symbol_map(
         # their very long names on every NL expression line.
         "symbolic_solver_labels": False,
     }
+    if inline_defined_variables:
+        io_options["export_defined_variables"] = False
     requested_column_order_sha256 = None
     if column_order_path is not None:
         column_order, requested_column_order_sha256 = _load_column_order(
@@ -136,6 +139,7 @@ def export_symbol_map(
             "free_design_variables": 8,
             "file_determinism": determinism,
             "symbolic_solver_labels": False,
+            "inline_defined_variables": inline_defined_variables,
             "column_order_from_symbol_map": (
                 str(column_order_path.resolve())
                 if column_order_path is not None
@@ -165,11 +169,20 @@ def main() -> int:
         default="sort-symbols",
     )
     parser.add_argument("--column-order-from-symbol-map", type=Path)
+    parser.add_argument(
+        "--inline-defined-variables",
+        action="store_true",
+        help=(
+            "Set export_defined_variables=false so modern Pyomo inlines "
+            "named Expression objects instead of emitting NL common expressions."
+        ),
+    )
     arguments = parser.parse_args()
     report = export_symbol_map(
         arguments.nl_output,
         arguments.file_determinism,
         arguments.column_order_from_symbol_map,
+        arguments.inline_defined_variables,
     )
     _write_report(report, arguments.output)
     print(

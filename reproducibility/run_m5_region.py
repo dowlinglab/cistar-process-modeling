@@ -248,6 +248,11 @@ def main() -> int:
         help="Load the archived target-region optimum before solving.",
     )
     parser.add_argument("--tee", action="store_true")
+    parser.add_argument(
+        "--inline-defined-variables",
+        action="store_true",
+        help="Set export_defined_variables=false for the modern Pyomo NL writer.",
+    )
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
 
@@ -256,6 +261,9 @@ def main() -> int:
     solver_environment = _configure_solver_environment(ipopt)
     report = _base_report(
         args.region, ipopt, args.linear_solver, solver_environment
+    )
+    report["environment"]["inline_defined_variables"] = (
+        args.inline_defined_variables
     )
     model = _build_preoptimization_model(
         model_code=5,
@@ -308,7 +316,12 @@ def main() -> int:
     )
     solve_started = time.time()
     try:
-        solve_result = solver.solve(model, tee=args.tee)
+        writer_options = (
+            {"export_defined_variables": False}
+            if args.inline_defined_variables
+            else {}
+        )
+        solve_result = solver.solve(model, tee=args.tee, **writer_options)
     except KeyboardInterrupt:
         report["run"] = {
             "initial_degrees_of_freedom": initial_dof,

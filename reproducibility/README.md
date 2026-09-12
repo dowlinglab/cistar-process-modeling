@@ -288,6 +288,78 @@ points but fails by USD 0.10/tonne; it is diagnostic evidence, not the Phase B
 reproduction policy. The runner now stops a continuation after a failed solve
 by default so later cases cannot inherit an invalid state.
 
+The decisive writer control is recorded in
+`B-M5-BAKKEN-DEFINED-VARIABLE-INLINING-001`. Pyomo 6.10's NL writer exposes an
+`export_defined_variables` option that defaults to true; Pyomo 6.4.2 emitted no
+common expressions for this model. With the historical variable-order request
+already supplied, `--inline-defined-variables` sets that option false. The
+modern NL keeps the same 5,555 variables, 5,618 constraints, component sets,
+constraint ordering, and Jacobian sparsity, but its reported
+Lagrangian-Hessian nonzeros fall from 26,211 to 17,776. Inlining changes
+nonlinear-variable classification from 2,305 to 2,317 columns, so the emitted
+variable order has a 2,305-column historical prefix and 2,573 exact positions
+rather than being completely identical. Starting from the archived tax-zero
+checkpoint, the complete ascending
+USD 0.01, 1, 17, 45, 190, and 410/tonne sequence then reaches strict optima in
+12-14 iterations per point. The largest absolute discrepancy from the migrated
+CSV is `1.20e-9` USD/MJ in MSP, `4.83e-4` K in R102 temperature, and 39.01
+USD/year in TAC. Even USD 410/tonne converges directly from the newly solved
+USD 190/tonne point, without an archived restart.
+
+A complete control then removed the historical column-order request. Inlining
+alone reproduces all six points as strict optima, with maximum absolute
+differences of `3.87e-10` USD/MJ in MSP, `4.89e-4` K in R102 temperature, and
+41.29 USD/year in TAC. The historical symbol map is therefore unnecessary in
+the recommended modern workflow; it remains useful only as a diagnostic
+ordering control.
+
+The corresponding fresh tax-zero optimization, started from the ordinary
+costed initialization checkpoint rather than an archived optimum, also reaches
+a strict optimum with inlining alone in 20 iterations. Its MSP, R102
+temperature, and TAC differences are `8.82e-10` USD/MJ, `7.77e-4` K, and
+40.15 USD/year. Thus the same compatibility option covers both the base solve
+and the full positive-tax continuation.
+
+The same inlining-only policy reproduces the M2-M4 Bakken model-comparison
+cases in record `B-ROK-MODEL-COMPARISON-DEFINED-VARIABLE-INLINING-001`. All
+three terminate at strict MA27 optima in 17-19 iterations. Across the three
+cases, the largest absolute differences from the migrated CSV are
+`1.28e-10` USD/MJ in MSP, `4.00e-4` K in R102 temperature, and 1.22 USD/year
+in TAC. No historical column map or model-specific scaling change is used.
+
+The same record preserves the negative controls that led to this result. The
+archived and fresh tax-zero R102 scaled row and column norms differ by at most
+about six parts per million, so checkpoint drift does not materially reshape
+the local reactor Jacobian. R102-only heat-variable rescaling and row
+normalization either fail badly or converge to an incorrect local optimum.
+Those controls remain available for diagnostics; they are not part of the
+modern reproduction policy. For this model, defined-variable inlining is the
+validated compatibility policy.
+
+The regional extension is recorded in
+`B-M5-REGIONAL-DEFINED-VARIABLE-INLINING-001`. Eleven of twelve M5 regional
+cases reach IPOPT optimal termination using inlining alone. This includes EF-2
+and EF-11, which did not produce accepted exact-path solutions under the
+reconstructed historical environment, and EF-8, which had previously entered
+an alternate optimum. EF-10 retains the largest small path discrepancy: an
+unscaled constraint violation of `5.72e-6`, an R102-temperature difference of
+`5.69e-2` K, and a TAC difference of 6,182 USD/year.
+
+EF-9 is the sole ordering-sensitive exception. Its inlining-only MA27 path was
+stopped after 19 minutes in restoration, and MA57 reached its 100-iteration
+limit with unscaled constraint and dual infeasibilities of `0.821` and `33.9`.
+Inlining plus the digest-verified Candidate A1 column-order request reaches an
+MA27 optimum and matches the migrated result within `2.95e-9` USD/MJ in MSP,
+`3.43e-3` K in R102 temperature, and 506 USD/year in TAC. The historical map
+is therefore retained as a narrow EF-9 compatibility exception, not a global
+modernization dependency.
+
+Modern Pyomo also required one lifecycle correction before regional switching:
+generated index sets are not always registered as named block components.
+Region cleanup now resolves each component by name and safely skips absent
+generated components. Remaining figure-generation and all-paper audit gates
+must still pass before Phase B is complete.
+
 ## Known provenance findings
 
 The published process/downstream emissions in Tables S4-S6 and Figures 3 and 6

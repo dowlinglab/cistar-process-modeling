@@ -26,7 +26,12 @@ import pyomo
 from scipy import sparse
 from idaes.core.util import model_serializer as ms
 from idaes.core.util.model_statistics import degrees_of_freedom
-from idaes.core.util.scaling import get_jacobian
+from idaes.core.util.scaling import (
+    constraint_scaling_transform,
+    get_constraint_transform_applied_scaling_factor,
+    get_jacobian,
+    set_scaling_factor,
+)
 from pyomo.environ import Constraint, SolverFactory, Suffix, Var, value
 try:
     from pyomo.repn.util import FileDeterminism
@@ -513,6 +518,58 @@ def _regularize_pseudo_zero_inlet_phases(
     }
 
 
+def _apply_r102_targeted_scaling(
+    model: Any,
+    heat_scaling_factor: float | None,
+    normalize_rows: bool,
+) -> dict[str, Any]:
+    """Apply independently selectable R102 heat and row-norm scaling controls."""
+    heat_variables = list(model.fs.R102.control_volume.heat.values())
+    if heat_scaling_factor is not None:
+        for variable in heat_variables:
+            set_scaling_factor(variable, heat_scaling_factor, overwrite=True)
+
+    report = {
+        "heat_variables_scaled": (
+            len(heat_variables) if heat_scaling_factor is not None else 0
+        ),
+        "heat_scaling_factor": heat_scaling_factor,
+        "row_normalization_enabled": normalize_rows,
+    }
+    if not normalize_rows:
+        report["constraints_row_normalized"] = 0
+        return report
+
+    jacobian, nlp = get_jacobian(model, scaled=True)
+    row_norms = np.asarray(sparse.linalg.norm(jacobian, ord=2, axis=1)).ravel()
+    selected_norms = []
+    zero_norm_constraints = []
+    for index, constraint in enumerate(nlp.clist):
+        if not constraint.name.startswith("fs.R102"):
+            continue
+        norm = float(row_norms[index])
+        if norm == 0.0:
+            zero_norm_constraints.append(constraint.name)
+            continue
+        existing = get_constraint_transform_applied_scaling_factor(
+            constraint, default=1.0
+        )
+        constraint_scaling_transform(
+            constraint, float(existing) / norm, overwrite=True
+        )
+        selected_norms.append(norm)
+    report.update({
+        "constraints_row_normalized": len(selected_norms),
+        "zero_norm_constraints_skipped": zero_norm_constraints,
+        "pre_normalization_scaled_row_norm_2_min": min(selected_norms),
+        "pre_normalization_scaled_row_norm_2_median": float(
+            np.median(selected_norms)
+        ),
+        "pre_normalization_scaled_row_norm_2_max": max(selected_norms),
+    })
+    return report
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--ipopt", type=Path, required=True)
@@ -534,6 +591,23 @@ def main() -> int:
             "Fix analytically normalized compositions and deactivate their "
             "ill-conditioned normalization equations for four structurally "
             "absent inlet phases (H105 Liq, H106 Vap, T103 Liq, T104 Liq)."
+        ),
+    )
+    parser.add_argument(
+        "--r102-heat-scaling-factor",
+        type=float,
+        help=(
+            "Override scaling factors for R102 heat variables. A magnitude-"
+            "based diagnostic value is 1e-8. Requires --nlp-scaling-method "
+            "user-scaling."
+        ),
+    )
+    parser.add_argument(
+        "--r102-row-norm-scaling",
+        action="store_true",
+        help=(
+            "Normalize R102 constraint rows by their current scaled-Jacobian "
+            "2-norm. Requires --nlp-scaling-method user-scaling."
         ),
     )
     parser.add_argument(
@@ -596,6 +670,15 @@ def main() -> int:
         choices=("nl", "nl_v1", "nl_v2"),
         default="nl",
         help="Select the Pyomo AMPL NL writer implementation.",
+    )
+    parser.add_argument(
+        "--inline-defined-variables",
+        action="store_true",
+        help=(
+            "Set the modern NL writer's export_defined_variables option to "
+            "false, inlining named Expression objects instead of exporting "
+            "them as NL common expressions. Valid only with --solver-io nl."
+        ),
     )
     parser.add_argument(
         "--file-determinism",
@@ -663,6 +746,14 @@ def main() -> int:
         )
     if args.ma57_automatic_scaling and args.linear_solver != "ma57":
         parser.error("--ma57-automatic-scaling requires --linear-solver ma57")
+    if args.inline_defined_variables and args.solver_io != "nl":
+        parser.error("--inline-defined-variables requires --solver-io nl")
+    if (
+        args.r102_heat_scaling_factor is not None or args.r102_row_norm_scaling
+    ) and args.nlp_scaling_method != "user-scaling":
+        parser.error(
+            "R102 scaling controls require --nlp-scaling-method user-scaling"
+        )
 
     started = time.time()
     ipopt = args.ipopt.resolve()
@@ -690,6 +781,8 @@ def main() -> int:
             "regularize_pseudo_zero_inlet_phases": (
                 args.regularize_pseudo_zero_inlet_phases
             ),
+            "r102_heat_scaling_factor": args.r102_heat_scaling_factor,
+            "r102_row_norm_scaling": args.r102_row_norm_scaling,
             "nlp_scaling_method": args.nlp_scaling_method or "ipopt-default",
             "modern_autoscale": args.modern_autoscale,
             "active_nlp_autoscale": args.active_nlp_autoscale,
@@ -702,6 +795,7 @@ def main() -> int:
                 else None
             ),
             "solver_io": args.solver_io,
+            "inline_defined_variables": args.inline_defined_variables,
             "continue_after_failure": args.continue_after_failure,
             "file_determinism": args.file_determinism,
             "column_order_from_symbol_map": (
@@ -759,11 +853,22 @@ def main() -> int:
     report["total_wall_seconds"] = time.time() - started
     _write_report(report, args.output)
     archived_rows = _load_archived_rows()
+    r102_targeted_scaling = None
 
     for tax_rate in args.tax_rates:
         case_started = time.time()
         model.fs.c_tax_rate = tax_rate
         unfix_DOFs_pre_optimization(model)
+        if (
+            args.r102_heat_scaling_factor is not None
+            or args.r102_row_norm_scaling
+        ) and r102_targeted_scaling is None:
+            r102_targeted_scaling = _apply_r102_targeted_scaling(
+                model,
+                args.r102_heat_scaling_factor,
+                args.r102_row_norm_scaling,
+            )
+            report["r102_targeted_scaling"] = r102_targeted_scaling
         if args.free_design_variables is not None:
             selected = set(args.free_design_variables)
             for name, variable in _design_variables(model).items():
@@ -831,6 +936,8 @@ def main() -> int:
             "sort-symbols": FileDeterminism.SORT_SYMBOLS,
         }[args.file_determinism]
         writer_options = {"file_determinism": determinism}
+        if args.inline_defined_variables:
+            writer_options["export_defined_variables"] = False
         if column_order is not None:
             writer_options["column_order"] = column_order
         solve_result = solver.solve(
@@ -870,6 +977,7 @@ def main() -> int:
                 "pseudo_zero_phase_regularization": (
                     pseudo_zero_phase_regularization
                 ),
+                "r102_targeted_scaling": r102_targeted_scaling,
                 "state_snapshots": state_snapshots,
                 "wall_seconds": time.time() - case_started,
                 "results_in_migrated_csv_units": fresh,

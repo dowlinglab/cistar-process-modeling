@@ -16,10 +16,12 @@ from idaes.core.util.model_statistics import degrees_of_freedom
 from pyomo.environ import SolverFactory
 
 from run_m5_bakken_tax_series import (
+    FileDeterminism,
     IDAES_CANDIDATE_COMMIT,
     _build_preoptimization_model,
     _collect_results,
     _configure_solver_environment,
+    _load_column_order,
     _solver_version,
     _write_report,
 )
@@ -54,6 +56,17 @@ def main() -> int:
     )
     parser.add_argument("--max-iter", type=int, default=500)
     parser.add_argument("--tee", action="store_true")
+    parser.add_argument(
+        "--inline-defined-variables",
+        action="store_true",
+        help="Set export_defined_variables=false for the modern Pyomo NL writer.",
+    )
+    parser.add_argument(
+        "--file-determinism",
+        choices=("ordered", "sort-indices", "sort-symbols"),
+        default="ordered",
+    )
+    parser.add_argument("--column-order-from-symbol-map", type=Path)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
 
@@ -71,6 +84,13 @@ def main() -> int:
             "pyomo": pyomo.__version__,
             "ipopt": _solver_version(ipopt, solver_environment),
             "linear_solver": args.linear_solver,
+            "inline_defined_variables": args.inline_defined_variables,
+            "file_determinism": args.file_determinism,
+            "column_order_from_symbol_map": (
+                str(args.column_order_from_symbol_map.resolve())
+                if args.column_order_from_symbol_map is not None
+                else None
+            ),
         },
         "case": {
             "model_code": 5,
@@ -96,6 +116,12 @@ def main() -> int:
         unit_initialization_region="Bakken",
     )
     report["build_seconds"] = time.time() - started
+    column_order = None
+    if args.column_order_from_symbol_map is not None:
+        column_order, column_digest = _load_column_order(
+            model, args.column_order_from_symbol_map
+        )
+        report["environment"]["requested_column_order_sha256"] = column_digest
     report["status"] = "running"
     report["total_wall_seconds"] = time.time() - started
     _write_report(report, args.output)
@@ -120,7 +146,19 @@ def main() -> int:
             }
         )
         try:
-            solve_result = solver.solve(model, tee=args.tee)
+            writer_options = (
+                {"export_defined_variables": False}
+                if args.inline_defined_variables
+                else {}
+            )
+            writer_options["file_determinism"] = {
+                "ordered": FileDeterminism.ORDERED,
+                "sort-indices": FileDeterminism.SORT_INDICES,
+                "sort-symbols": FileDeterminism.SORT_SYMBOLS,
+            }[args.file_determinism]
+            if column_order is not None:
+                writer_options["column_order"] = column_order
+            solve_result = solver.solve(model, tee=args.tee, **writer_options)
         except KeyboardInterrupt:
             report["runs"].append(
                 {

@@ -1,0 +1,194 @@
+{
+  "schema_version": 1,
+  "experiment_id": "B-M5-BAKKEN-DEFINED-VARIABLE-INLINING-001",
+  "purpose": "Determine whether the modern Pyomo NL writer's common-expression representation causes the remaining IDAES 2.12 M5/Bakken continuation failures, after named equations, derivatives, row order, and historical variable order have been controlled.",
+  "common_case": {
+    "environment": "IDAES 2.12.0 / Pyomo 6.10.1 / IPOPT 3.14.19",
+    "historical_reference_environment": "IDAES 2.0.0a0 / Pyomo 6.4.2",
+    "model_code": 5,
+    "region": "Bakken",
+    "free_design_variables": 8,
+    "linear_solver": "ma27",
+    "strict_tolerance": 1e-6,
+    "max_iterations": 100,
+    "file_determinism": "sort-symbols",
+    "historical_column_order_sha256": "ffbb0f542b183207539008a4c27a8e28ad6a0d4c61f80f002ca01f55e58a611c",
+    "historical_column_order_used_in_strict_tax_sequence": true,
+    "nlp_scaling_method": "ipopt-default",
+    "initial_checkpoint": "CISTAR_optimal_solution_Bakken_C_tax_0.0_M5_purge_0.01_sequential_solve.json.gz",
+    "modern_writer_option": {
+      "export_defined_variables": false,
+      "runner_flag": "--inline-defined-variables"
+    }
+  },
+  "representation_comparison": {
+    "active_variables": 5555,
+    "equality_constraints": 5547,
+    "inequality_constraints": 71,
+    "equality_jacobian_nonzeros": 34098,
+    "inequality_jacobian_nonzeros": 178,
+    "modern_default_lagrangian_hessian_nonzeros": 26211,
+    "modern_inlined_lagrangian_hessian_nonzeros": 17776,
+    "modern_default_reusable_common_expressions": 548,
+    "modern_default_single_use_common_expressions": 7309,
+    "historical_common_expressions": 0,
+    "historical_nonlinear_variables_in_constraints": 2305,
+    "modern_inlined_nonlinear_variables_in_constraints": 2317,
+    "modern_inlined_variables_in_historical_positions": 2573,
+    "modern_inlined_variable_order_common_prefix": 2305,
+    "modern_inlined_maximum_variable_displacement": 2970,
+    "constraints_in_historical_positions": 5618,
+    "interpretation": "Disabling defined-variable export retains the named NLP dimensions, component sets, constraint ordering, and Jacobian sparsity while removing the modern common-expression representation and reducing the Hessian structure reported by ASL/IPOPT. It changes nonlinear-variable classification, so Pyomo cannot retain the literal historical sequence for every column even when that sequence is requested; 2,573 of 5,555 positions match exactly and the first 2,305 form a common prefix."
+  },
+  "strict_tax_sequence": [
+    {
+      "co2_tax_usd_per_kg": 0.00001,
+      "co2_tax_usd_per_tonne": 0.01,
+      "termination_condition": "optimal",
+      "iterations": 14,
+      "unscaled_constraint_violation": 5.9604644775390625e-8,
+      "dual_infeasibility": 5.20e-8,
+      "msp_difference_from_migrated_csv_usd_per_mj": -1.1957062770462379e-9,
+      "tac_difference_from_migrated_csv_usd_per_year": 21.513646125793457,
+      "r102_temperature_difference_from_migrated_csv_K": -0.00014937492653643858
+    },
+    {
+      "co2_tax_usd_per_kg": 0.001,
+      "co2_tax_usd_per_tonne": 1.0,
+      "termination_condition": "optimal",
+      "iterations": 14,
+      "unscaled_constraint_violation": 1.1920928955078125e-7,
+      "dual_infeasibility": 5.20e-8,
+      "msp_difference_from_migrated_csv_usd_per_mj": -7.949123824457782e-11,
+      "tac_difference_from_migrated_csv_usd_per_year": -2.088997006416321,
+      "r102_temperature_difference_from_migrated_csv_K": -0.00043311586182426254
+    },
+    {
+      "co2_tax_usd_per_kg": 0.017,
+      "co2_tax_usd_per_tonne": 17.0,
+      "termination_condition": "optimal",
+      "iterations": 12,
+      "unscaled_constraint_violation": 5.9604644775390625e-8,
+      "dual_infeasibility": 5.24e-8,
+      "msp_difference_from_migrated_csv_usd_per_mj": -1.8832539694368933e-12,
+      "tac_difference_from_migrated_csv_usd_per_year": 3.9321490228176117,
+      "r102_temperature_difference_from_migrated_csv_K": -0.00010893911428411229
+    },
+    {
+      "co2_tax_usd_per_kg": 0.045,
+      "co2_tax_usd_per_tonne": 45.0,
+      "termination_condition": "optimal",
+      "iterations": 13,
+      "unscaled_constraint_violation": 1.1920928955078125e-7,
+      "dual_infeasibility": 5.31e-8,
+      "msp_difference_from_migrated_csv_usd_per_mj": -9.64051234675356e-12,
+      "tac_difference_from_migrated_csv_usd_per_year": -0.30779239535331726,
+      "r102_temperature_difference_from_migrated_csv_K": 0.00048269692672420206
+    },
+    {
+      "co2_tax_usd_per_kg": 0.19,
+      "co2_tax_usd_per_tonne": 190.0,
+      "termination_condition": "optimal",
+      "iterations": 13,
+      "unscaled_constraint_violation": 1.1920928955078125e-7,
+      "dual_infeasibility": 5.66e-8,
+      "msp_difference_from_migrated_csv_usd_per_mj": -9.022567068472931e-11,
+      "tac_difference_from_migrated_csv_usd_per_year": 39.003572165966034,
+      "r102_temperature_difference_from_migrated_csv_K": 0.0003796981917503217
+    },
+    {
+      "co2_tax_usd_per_kg": 0.41,
+      "co2_tax_usd_per_tonne": 410.0,
+      "termination_condition": "optimal",
+      "iterations": 12,
+      "unscaled_constraint_violation": 1.1920928955078125e-7,
+      "dual_infeasibility": 6.20e-8,
+      "msp_difference_from_migrated_csv_usd_per_mj": -8.487130789824882e-11,
+      "tac_difference_from_migrated_csv_usd_per_year": 3.7927239537239075,
+      "r102_temperature_difference_from_migrated_csv_K": 0.0004035436136291537
+    }
+  ],
+  "inlining_only_sequence_without_historical_column_order": {
+    "status": "complete",
+    "historical_column_order_requested": false,
+    "total_wall_seconds": 1047.3320021629333,
+    "runs": [
+      {"co2_tax_usd_per_kg": 0.00001, "termination_condition": "optimal", "msp_difference_from_migrated_csv_usd_per_mj": -4.612941972848006e-13, "r102_temperature_difference_from_migrated_csv_K": -0.0003051586301126008, "tac_difference_from_migrated_csv_usd_per_year": 1.3538239002227783},
+      {"co2_tax_usd_per_kg": 0.001, "termination_condition": "optimal", "msp_difference_from_migrated_csv_usd_per_mj": -3.471385678910366e-11, "r102_temperature_difference_from_migrated_csv_K": -0.0004314110152563444, "tac_difference_from_migrated_csv_usd_per_year": -2.1924847960472107},
+      {"co2_tax_usd_per_kg": 0.017, "termination_condition": "optimal", "msp_difference_from_migrated_csv_usd_per_mj": 6.710652866726008e-12, "r102_temperature_difference_from_migrated_csv_K": -0.00011566872774437797, "tac_difference_from_migrated_csv_usd_per_year": 3.3114557564258575},
+      {"co2_tax_usd_per_kg": 0.045, "termination_condition": "optimal", "msp_difference_from_migrated_csv_usd_per_mj": -3.6070590958559023e-12, "r102_temperature_difference_from_migrated_csv_K": 0.0004883462933094052, "tac_difference_from_migrated_csv_usd_per_year": 0.14356490969657898},
+      {"co2_tax_usd_per_kg": 0.19, "termination_condition": "optimal", "msp_difference_from_migrated_csv_usd_per_mj": -2.9323404815428944e-10, "r102_temperature_difference_from_migrated_csv_K": 0.00040741526117926696, "tac_difference_from_migrated_csv_usd_per_year": 41.287719905376434},
+      {"co2_tax_usd_per_kg": 0.41, "termination_condition": "optimal", "msp_difference_from_migrated_csv_usd_per_mj": 3.8604181656909375e-10, "r102_temperature_difference_from_migrated_csv_K": 0.000038498254866681236, "tac_difference_from_migrated_csv_usd_per_year": -24.150214552879333}
+    ],
+    "maximum_absolute_differences": {
+      "msp_usd_per_mj": 3.8604181656909375e-10,
+      "r102_temperature_K": 0.0004883462933094052,
+      "tac_usd_per_year": 41.287719905376434
+    },
+    "interpretation": "Defined-variable inlining alone is sufficient; the historical symbol-map dependency can be omitted from the validated modern M5/Bakken continuation policy."
+  },
+  "fresh_tax_zero_inlining_only_control": {
+    "historical_optimum_loaded": false,
+    "historical_column_order_requested": false,
+    "termination_condition": "optimal",
+    "iterations": 20,
+    "unscaled_constraint_violation": 5.9604644775390625e-8,
+    "dual_infeasibility": 5.1974387702750454e-8,
+    "msp_difference_from_migrated_csv_usd_per_mj": -8.821537580278038e-10,
+    "r102_temperature_difference_from_migrated_csv_K": -0.0007767917088585818,
+    "tac_difference_from_migrated_csv_usd_per_year": -40.149037301540375,
+    "interpretation": "Inlining alone also replaces the earlier historical-column workaround for the fresh tax-zero base optimization."
+  },
+  "r102_jacobian_control": {
+    "experiment_id": "B-M5-BAKKEN-SUBSYSTEM-JACOBIAN-COMPARISON-001",
+    "subsystem_variables": 2927,
+    "subsystem_constraints": 2886,
+    "maximum_archived_to_fresh_scaled_column_norm_ratio": 1.0000056687254353,
+    "maximum_archived_to_fresh_scaled_row_norm_ratio": 1.0000063349717574,
+    "largest_scaled_variable_families": {
+      "temperature": {"minimum": 166.33103470812043, "median": 189.91558727502172, "maximum": 17457.109519292953},
+      "pressure": {"minimum": 265.2442989585434, "median": 343.80667908917184, "maximum": 672.0370835195017},
+      "heat": {"minimum": 0.0010318914671611544, "median": 0.0010318914671611544, "maximum": 0.0010318914671611544}
+    },
+    "interpretation": "The fresh tax-zero state changes local R102 scaled row and column norms by at most about six parts per million. State drift does not reshape the local Jacobian enough to explain the continuation failure, although the inherited R102 scaling is highly nonuniform."
+  },
+  "rejected_targeted_scaling_controls": [
+    {
+      "policy": "R102 heat variables scaled by 1e-8 plus R102 constraint row normalization; IPOPT user-scaling; MA27",
+      "termination_condition": "maxIterations",
+      "final_unscaled_constraint_violation": 239975.0,
+      "final_dual_infeasibility": 24298.0,
+      "classification": "Substantially worse trajectory; rejected."
+    },
+    {
+      "policy": "R102 heat variables scaled by 1e-8; IPOPT user-scaling; MA27",
+      "termination_condition": "optimal",
+      "iterations": 17,
+      "msp_usd_per_mj": 0.011479613509700667,
+      "msp_difference_from_migrated_csv_usd_per_mj": 0.001068292503766317,
+      "r102_temperature_K": 656.1301390168921,
+      "r102_temperature_difference_from_migrated_csv_K": 5.588139016892114,
+      "classification": "Strictly accepted alternate high-temperature local optimum; rejected as reproduction."
+    },
+    {
+      "policy": "R102 heat variables scaled by 1e-8; IPOPT user-scaling; MA57",
+      "termination_condition": "maxIterations",
+      "final_unscaled_constraint_violation": 7.60e7,
+      "classification": "Catastrophic failed trajectory; rejected."
+    }
+  ],
+  "commands": {
+    "reproduction": "conda run --no-capture-output -n cistar-idaes-2.12 python reproducibility/run_m5_bakken_tax_series.py --ipopt IPOPT --linear-solver ma27 --initial-optimal-tax 0.0 --tax-rates 0.00001 0.001 0.017 0.045 0.19 0.41 --max-iter 100 --file-determinism sort-symbols --inline-defined-variables --output RESULT.json",
+    "fresh_tax_zero_control": "conda run --no-capture-output -n cistar-idaes-2.12 python reproducibility/run_m5_bakken_tax_series.py --ipopt IPOPT --linear-solver ma27 --tax-rates 0.0 --max-iter 100 --file-determinism sort-symbols --inline-defined-variables --output RESULT.json",
+    "combined_historical_order_control": "Add --column-order-from-symbol-map CANDIDATE_A1_SYMBOL_MAP.json to the reproduction command.",
+    "subsystem_jacobian": "conda run --no-capture-output -n cistar-idaes-2.12 python reproducibility/compare_m5_subsystem_jacobians.py --candidate-snapshot FRESH_TAX0_STATE.json --prefix fs.R102 --output RESULT.json"
+  },
+  "conclusions": [
+    "Modern Pyomo's defined-variable/common-expression export is the remaining causal representation difference for the M5/Bakken tax continuation; a full control shows inlining works without a historical column-order request.",
+    "Inlining defined variables reproduces all six requested positive-tax M5/Bakken points as strict optima in a single ascending continuation, including USD 410/tonne without an archived restart.",
+    "Inlining alone also reproduces a fresh tax-zero optimization as a strict optimum, so neither the base case nor continuation requires historical column ordering.",
+    "For the inlining-only sequence, the maximum absolute MSP discrepancy is 3.87e-10 USD/MJ; the maximum absolute R102-temperature discrepancy is 4.89e-4 K; the maximum absolute TAC discrepancy is 41.29 USD/year.",
+    "R102-specific scaling changes alter the solver path but do not provide a representation-robust reproduction policy; they remain opt-in diagnostics.",
+    "Phase B still needs the regional M5 paper-result gates under the same controlled modern representation before all-paper-results reproduction can be declared complete."
+  ]
+}

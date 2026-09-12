@@ -7,6 +7,7 @@ import weakref
 from pathlib import Path
 
 from pyomo.environ import Block, ConcreteModel, Constraint, Set, Var
+from scipy import sparse
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -17,6 +18,10 @@ from reproducibility.compare_named_states import (  # noqa: E402
     _component_family,
     _unit_name,
     compare_values,
+)
+from reproducibility.compare_m5_subsystem_jacobians import (  # noqa: E402
+    _axis_metrics,
+    _change_ratio,
 )
 from reproducibility.export_m5_nl_symbol_map import (  # noqa: E402
     _ordered_symbol_names,
@@ -157,6 +162,31 @@ class NlSymbolMapTests(unittest.TestCase):
         self.assertIn('"--acceptable-tol"', source)
         self.assertIn('"--acceptable-iter"', source)
         self.assertIn('"--continue-after-failure"', source)
+        self.assertIn('"--inline-defined-variables"', source)
+
+    def test_subsystem_jacobian_metric_helpers(self):
+        matrix = sparse.csr_matrix([[3.0, 0.0], [4.0, 12.0]])
+        columns = _axis_metrics(matrix, axis=0)
+        rows = _axis_metrics(matrix, axis=1)
+        self.assertEqual(columns["norm_2"].tolist(), [5.0, 12.0])
+        self.assertEqual(columns["nonzeros"].tolist(), [2, 1])
+        self.assertEqual(rows["norm_2"][0], 3.0)
+        self.assertAlmostEqual(rows["norm_2"][1], 12.649110640673518)
+        self.assertEqual(rows["nonzeros"].tolist(), [1, 2])
+        self.assertEqual(_change_ratio(2.0, 8.0), 4.0)
+        self.assertIsNone(_change_ratio(0.0, 1.0))
+
+    def test_paper_result_runners_expose_defined_variable_inlining(self):
+        scripts = (
+            "export_m5_nl_symbol_map.py",
+            "run_m5_region.py",
+            "run_m5_region_series.py",
+            "run_rok_bakken_model.py",
+        )
+        for script in scripts:
+            source = (REPO_ROOT / "reproducibility" / script).read_text()
+            self.assertIn('"--inline-defined-variables"', source)
+            self.assertIn('"export_defined_variables"', source)
 
 
 if __name__ == "__main__":
