@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "experiment_id": "B-IDAES-2.12-M5-BAKKEN-SCALING-001",
+  "date": "2026-09-12",
+  "base_git_commit": "fc28595",
+  "branch": "codex/update-idaes-2.12",
+  "environment": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "python": "3.10.8",
+    "idaes": "2.12.0",
+    "pyomo": "6.10.1",
+    "ipopt": "3.14.19",
+    "hsl_linear_solvers_tested": [
+      "ma27",
+      "ma57"
+    ]
+  },
+  "case": {
+    "model_code": 5,
+    "region": "Bakken",
+    "co2_tax_usd_per_kg": 0.0,
+    "optimization_degrees_of_freedom": 8
+  },
+  "archived_state_validation": {
+    "fixed_costed_checkpoint": {
+      "active_constraints": 5618,
+      "constraints_with_absolute_residual_above_1e-5": 0
+    },
+    "archived_optimal_checkpoint": {
+      "source": "CISTAR_optimal_solution_Bakken_C_tax_0.0_M5_purge_0.01_sequential_solve.json.gz",
+      "maximum_absolute_difference_from_migrated_csv_across_temperature_pressure_and_flow_metrics": 0.00044738494034390897,
+      "msp_difference_usd_per_mj": 0.0,
+      "conclusion": "IDAES 2.12 deserializes the archived optimum and reproduces its reported values before a new optimization step."
+    }
+  },
+  "scaling_diagnostics": {
+    "badly_scaled_variables": 231,
+    "variables_near_bounds": 359,
+    "unscaled_variables": 141,
+    "unscaled_constraints": 1340,
+    "stale_scaling_suffix_keys_not_exported": 440,
+    "scaling_suffix_keys_with_unsupported_component_type": 1750,
+    "full_structural_report": "deferred because the legacy unit-consistency traversal emits a very large number of errors and did not finish in the bounded diagnostic run",
+    "full_numerical_report": "deferred because Jacobian and constraint-term traversal did not finish in the bounded diagnostic run"
+  },
+  "solver_experiments": [
+    {
+      "start": "fixed costed checkpoint",
+      "linear_solver": "ma27",
+      "nlp_scaling_method": "ipopt-default",
+      "max_iterations": 100,
+      "termination_condition": "maxIterations",
+      "solve_seconds": 321.347660779953,
+      "msp_difference_usd_per_mj": 0.0017179320308255107,
+      "t_r102_difference_k": -137.70407510348593,
+      "tac_difference_usd_per_year": 80758982.274573
+    },
+    {
+      "start": "fixed costed checkpoint",
+      "linear_solver": "ma57",
+      "nlp_scaling_method": "ipopt-default",
+      "max_iterations": 1,
+      "termination_condition": "maxIterations",
+      "iteration_zero_primal_infeasibility": 5.96e-8,
+      "first_step_norm": 2240000.0,
+      "iteration_one_unscaled_constraint_violation": 91451.53351765871,
+      "conclusion": "MA57 is available and factors the full NLP, but the first default-scaled step destroys the nearly feasible start."
+    },
+    {
+      "start": "fixed costed checkpoint",
+      "linear_solver": "ma57",
+      "nlp_scaling_method": "user-scaling",
+      "max_iterations": 30,
+      "termination_condition": "maxIterations",
+      "solve_seconds": 167.1987590789795,
+      "msp_difference_usd_per_mj": 0.0019172800757510135,
+      "t_r102_difference_k": 5.507246922855643,
+      "tac_difference_usd_per_year": 10328693.546976238,
+      "conclusion": "Explicit user scaling did not restore convergence with the inherited suffix values."
+    },
+    {
+      "start": "archived tax-zero optimum",
+      "linear_solver": "ma27",
+      "nlp_scaling_method": "ipopt-default",
+      "max_iterations": 100,
+      "termination_condition": "maxIterations",
+      "solve_seconds": 313.4590871334076,
+      "msp_difference_usd_per_mj": -0.0026912579240297545,
+      "t_r102_difference_k": -62.1228312393705,
+      "tac_difference_usd_per_year": 36778786.03131503,
+      "conclusion": "A new solve moves away from an archived point that was loaded essentially exactly."
+    }
+  ],
+  "conclusion": "The historical checkpoints remain readable and feasible, and both HSL solvers are functional. The first modern optimization step is numerically unstable. The next Phase B work should repair or regenerate scaling on the optimization NLP before attempting the full paper result matrix."
+}

@@ -51,6 +51,16 @@ DEFAULT_TAX_RATES = (0.0, 1e-5, 1e-3, 1.7e-2, 4.5e-2, 1.9e-1, 4.1e-1)
 IDAES_CANDIDATE_COMMIT = "66935c80a5aafc3ffc9ab3d387e488cddd4f233b"
 
 
+def _idaes_provenance() -> dict[str, str]:
+    """Describe the installed IDAES without mislabeling modern releases."""
+    provenance = {"idaes": idaes.__version__}
+    if idaes.__version__.startswith("2.0.0.dev3"):
+        provenance["idaes_candidate_commit"] = IDAES_CANDIDATE_COMMIT
+    else:
+        provenance["historical_reference_commit"] = IDAES_CANDIDATE_COMMIT
+    return provenance
+
+
 def _checkpoint(name: str) -> Path:
     return REPO_ROOT / "initialization_files" / name
 
@@ -251,6 +261,11 @@ def main() -> int:
     )
     parser.add_argument("--max-iter", type=int, default=100)
     parser.add_argument(
+        "--nlp-scaling-method",
+        choices=("gradient-based", "user-scaling", "none"),
+        help="Set Ipopt's nlp_scaling_method; omit to retain its default.",
+    )
+    parser.add_argument(
         "--initial-optimal-tax",
         type=float,
         metavar="USD_PER_KG",
@@ -272,11 +287,11 @@ def main() -> int:
             "platform": platform.platform(),
             "machine": platform.machine(),
             "python": sys.version,
-            "idaes": idaes.__version__,
-            "idaes_candidate_commit": IDAES_CANDIDATE_COMMIT,
+            **_idaes_provenance(),
             "pyomo": pyomo.__version__,
             "ipopt": _solver_version(ipopt, solver_environment),
             "linear_solver": args.linear_solver,
+            "nlp_scaling_method": args.nlp_scaling_method or "ipopt-default",
         },
         "case": {"model_code": 5, "region": "Bakken"},
         "tax_rate_units": "USD/kg CO2e",
@@ -312,6 +327,14 @@ def main() -> int:
         model.fs.c_tax_rate = tax_rate
         unfix_DOFs_pre_optimization(model)
         initial_dof = degrees_of_freedom(model)
+        starting_results = _collect_results(model)
+        archived = archived_rows.get(tax_rate * 1000)
+        starting_comparison = None
+        if archived is not None:
+            starting_comparison = {
+                metric: starting_results[metric] - archived[metric]
+                for metric in starting_results
+            }
         solver = SolverFactory("ipopt", executable=str(ipopt))
         solver.options.update(
             {
@@ -321,9 +344,15 @@ def main() -> int:
                 "linear_solver": args.linear_solver,
             }
         )
-        solve_result = solver.solve(model, tee=args.tee)
+        if args.nlp_scaling_method is not None:
+            solver.options["nlp_scaling_method"] = args.nlp_scaling_method
+        solve_result = solver.solve(model, tee=args.tee, load_solutions=False)
+        load_error = None
+        try:
+            model.solutions.load_from(solve_result)
+        except ValueError as err:
+            load_error = str(err)
         fresh = _collect_results(model)
-        archived = archived_rows.get(tax_rate * 1000)
         comparison = None
         if archived is not None:
             comparison = {
@@ -333,9 +362,14 @@ def main() -> int:
             {
                 "co2_tax_usd_per_kg": tax_rate,
                 "initial_degrees_of_freedom": initial_dof,
+                "starting_results_in_migrated_csv_units": starting_results,
+                "starting_difference_from_migrated_csv": starting_comparison,
                 "termination_condition": str(
                     solve_result.solver.termination_condition
                 ),
+                "solver_status": str(solve_result.solver.status),
+                "solver_message": str(solve_result.solver.message),
+                "solution_load_error": load_error,
                 "wall_seconds": time.time() - case_started,
                 "results_in_migrated_csv_units": fresh,
                 "difference_from_migrated_csv": comparison,
