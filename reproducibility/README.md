@@ -46,6 +46,27 @@ To isolate a difficult sequential transition, `--initial-optimal-tax 0.19
 --tax-rates 0.41` loads the archived USD 190/tonne optimum before solving the
 USD 410/tonne case.
 
+Rerun one M5 regional case with the initialization and temperature
+perturbation used by its published notebook:
+
+```bash
+python reproducibility/run_m5_region.py \
+  --region EF-1 \
+  --ipopt /absolute/path/to/hsl-enabled/ipopt \
+  --linear-solver ma27 \
+  --tee \
+  --output /path/outside/the/repository/m5-ef-1.json
+```
+
+Use `run_m5_region_series.py --regions EF-1 EF-2 ... EF-12` for an incremental
+multi-zone run. The coordinator reloads the archived EF-Basin optimum before
+each zone, except EF-9, whose published notebook reloads EF-8. It writes the
+JSON record after every completed zone so an interrupted run retains completed
+evidence. The single-case runner also accepts `--initial-optimum` as a
+compatibility control when the published initialization path is solver
+sensitive; this is a diagnostic restart and not a substitute for reproducing
+the notebook sequence.
+
 The default `postprocessed` snapshot uses the root-level CSV files created by
 commit `957e363`, which recalculated TAC and MSP using cooling water above 303 K
 and refrigerated water from 288-303 K. The `migrated` snapshot uses the CSV files

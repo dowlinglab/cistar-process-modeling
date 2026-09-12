@@ -118,7 +118,42 @@ def main() -> int:
                 "linear_solver": args.linear_solver,
             }
         )
-        solve_result = solver.solve(model, tee=args.tee)
+        try:
+            solve_result = solver.solve(model, tee=args.tee)
+        except KeyboardInterrupt:
+            report["runs"].append(
+                {
+                    "region": region,
+                    "base_optimum_region": _base_optimum_region(region),
+                    "base_checkpoint": base_checkpoint,
+                    "initial_temperature_perturbation_k": perturbation,
+                    "initial_degrees_of_freedom": initial_dof,
+                    "termination_condition": "interrupted_by_operator",
+                    "wall_seconds": time.time() - case_started,
+                }
+            )
+            report["status"] = "interrupted"
+            report["total_wall_seconds"] = time.time() - started
+            _write_report(report, args.output)
+            raise
+        except Exception as error:
+            report["runs"].append(
+                {
+                    "region": region,
+                    "base_optimum_region": _base_optimum_region(region),
+                    "base_checkpoint": base_checkpoint,
+                    "initial_temperature_perturbation_k": perturbation,
+                    "initial_degrees_of_freedom": initial_dof,
+                    "termination_condition": "python_exception",
+                    "wall_seconds": time.time() - case_started,
+                    "exception_type": type(error).__name__,
+                    "exception_message": str(error),
+                }
+            )
+            report["status"] = "error"
+            report["total_wall_seconds"] = time.time() - started
+            _write_report(report, args.output)
+            raise
         fresh = _collect_results(model)
         archived = _load_archived_row(region)
         report["runs"].append(
