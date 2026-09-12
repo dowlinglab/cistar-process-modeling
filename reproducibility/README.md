@@ -223,6 +223,18 @@ to later equalities. The more stable whole-model trajectory therefore relies on
 accidentally misaligned equality factors and is diagnostic evidence, not a
 defensible modernization policy.
 
+The optimization runner also supports `--free-design-variables` for
+unit/decision-level gates and `--file-determinism sort-symbols` for a
+cross-version ordering control. Record
+`B-M5-BAKKEN-DOF-ORDERING-CONTROLS-001` shows that the default-order modern
+model fails even with only H103/R102 temperature free, while symbol ordering
+converts that one-DOF case to an accepted optimum. The complete eight-DOF
+modern case still fails with symbol ordering, whereas Candidate A1 converges
+and closely reproduces the archived result under the same requested rule.
+Ordering is therefore an important sensitivity but the high-level writer
+setting is not a complete explanation; actual emitted NL symbol maps and
+writer grouping must be compared across Pyomo versions.
+
 ## Known provenance findings
 
 The published process/downstream emissions in Tables S4-S6 and Figures 3 and 6

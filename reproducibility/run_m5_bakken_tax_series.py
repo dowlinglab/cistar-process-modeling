@@ -27,6 +27,10 @@ from idaes.core.util import model_serializer as ms
 from idaes.core.util.model_statistics import degrees_of_freedom
 from idaes.core.util.scaling import get_jacobian
 from pyomo.environ import Constraint, SolverFactory, Suffix, value
+try:
+    from pyomo.repn.util import FileDeterminism
+except ImportError:  # Pyomo 6.4 keeps this enum in the NL writer module
+    from pyomo.repn.plugins.nl_writer import FileDeterminism
 
 from src.costing_function import add_costing, calculate_costs_for_objective
 from src.emissions_calculations import (
@@ -52,6 +56,16 @@ from src.utility_minimization_1d import min_utility
 
 DEFAULT_TAX_RATES = (0.0, 1e-5, 1e-3, 1.7e-2, 4.5e-2, 1.9e-1, 4.1e-1)
 IDAES_CANDIDATE_COMMIT = "66935c80a5aafc3ffc9ab3d387e488cddd4f233b"
+DESIGN_VARIABLE_NAMES = (
+    "Qs",
+    "H103_temperature",
+    "H104_temperature",
+    "H105_temperature",
+    "F101_deltaP",
+    "H106_temperature",
+    "H106_pressure",
+    "F102_deltaP",
+)
 
 
 def _idaes_provenance() -> dict[str, str]:
@@ -156,6 +170,20 @@ def _apply_active_nlp_autoscaling(
 
 def _checkpoint(name: str) -> Path:
     return REPO_ROOT / "initialization_files" / name
+
+
+def _design_variables(model: Any) -> dict[str, Any]:
+    """Return the eight design variables opened by the published optimization."""
+    return {
+        "Qs": model.fs.Qs,
+        "H103_temperature": model.fs.H103.outlet.temperature[0],
+        "H104_temperature": model.fs.H104.outlet.temperature[0],
+        "H105_temperature": model.fs.H105.outlet.temperature[0],
+        "F101_deltaP": model.fs.F101.deltaP[0],
+        "H106_temperature": model.fs.H106.outlet.temperature[0],
+        "H106_pressure": model.fs.H106.outlet.pressure[0],
+        "F102_deltaP": model.fs.F102.deltaP[0],
+    }
 
 
 def _build_preoptimization_model(
@@ -391,12 +419,30 @@ def main() -> int:
         help="Select the Pyomo AMPL NL writer implementation.",
     )
     parser.add_argument(
+        "--file-determinism",
+        choices=("ordered", "sort-indices", "sort-symbols"),
+        default="ordered",
+        help=(
+            "Control deterministic NL row/column ordering. sort-symbols gives "
+            "both environments a component-name-based ordering rule."
+        ),
+    )
+    parser.add_argument(
         "--initial-optimal-tax",
         type=float,
         metavar="USD_PER_KG",
         help=(
             "Load the archived M5/Bakken optimum at this tax before the first "
             "requested solve. Useful for isolating one sequential transition."
+        ),
+    )
+    parser.add_argument(
+        "--free-design-variables",
+        nargs="+",
+        choices=DESIGN_VARIABLE_NAMES,
+        help=(
+            "Free only this subset of the eight published optimization "
+            "variables; all omitted design variables remain at the checkpoint."
         ),
     )
     parser.add_argument("--tee", action="store_true")
@@ -436,8 +482,14 @@ def main() -> int:
                 else None
             ),
             "solver_io": args.solver_io,
+            "file_determinism": args.file_determinism,
         },
         "case": {"model_code": 5, "region": "Bakken"},
+        "free_design_variables": (
+            list(args.free_design_variables)
+            if args.free_design_variables is not None
+            else list(DESIGN_VARIABLE_NAMES)
+        ),
         "tax_rate_units": "USD/kg CO2e",
         "initialization_chain": [
             "CISTAR_unit_initialization_Bakken_M5.json.gz",
@@ -470,6 +522,11 @@ def main() -> int:
         case_started = time.time()
         model.fs.c_tax_rate = tax_rate
         unfix_DOFs_pre_optimization(model)
+        if args.free_design_variables is not None:
+            selected = set(args.free_design_variables)
+            for name, variable in _design_variables(model).items():
+                if name not in selected:
+                    variable.fix()
         initial_dof = degrees_of_freedom(model)
         starting_results = _collect_results(model)
         archived = archived_rows.get(tax_rate * 1000)
@@ -503,10 +560,16 @@ def main() -> int:
         )
         if args.nlp_scaling_method is not None:
             solver.options["nlp_scaling_method"] = args.nlp_scaling_method
+        determinism = {
+            "ordered": FileDeterminism.ORDERED,
+            "sort-indices": FileDeterminism.SORT_INDICES,
+            "sort-symbols": FileDeterminism.SORT_SYMBOLS,
+        }[args.file_determinism]
         solve_result = solver.solve(
             model,
             tee=args.tee,
             load_solutions=False,
+            file_determinism=determinism,
         )
         load_error = None
         try:

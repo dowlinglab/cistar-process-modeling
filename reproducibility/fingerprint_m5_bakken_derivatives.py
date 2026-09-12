@@ -29,6 +29,7 @@ from reproducibility.diagnose_m5_bakken_stationarity import ARCHIVED_OPTIMUM
 from reproducibility.run_m5_bakken_tax_series import (
     _build_preoptimization_model,
     _checkpoint,
+    _design_variables,
     _write_report,
 )
 from src.unit_initialization import unfix_DOFs_pre_optimization
@@ -103,19 +104,6 @@ def _name_digest(names: list[str]) -> str:
 def _deterministic_dual(name: str) -> float:
     token = int.from_bytes(hashlib.sha256(name.encode("utf-8")).digest()[:4], "big")
     return 0.5 + token / 2**32
-
-
-def _design_variables(model: Any) -> dict[str, Any]:
-    return {
-        "Qs": model.fs.Qs,
-        "H103_temperature": model.fs.H103.outlet.temperature[0],
-        "H104_temperature": model.fs.H104.outlet.temperature[0],
-        "H105_temperature": model.fs.H105.outlet.temperature[0],
-        "F101_deltaP": model.fs.F101.deltaP[0],
-        "H106_temperature": model.fs.H106.outlet.temperature[0],
-        "H106_pressure": model.fs.H106.outlet.pressure[0],
-        "F102_deltaP": model.fs.F102.deltaP[0],
-    }
 
 
 def _parse_perturbation(specification: str) -> tuple[str, float]:

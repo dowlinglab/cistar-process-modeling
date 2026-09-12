@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "experiment_id": "B-M5-BAKKEN-DOF-ORDERING-CONTROLS-001",
+  "purpose": "Separate design-variable coupling from NL row/column ordering sensitivity in the M5/Bakken tax-zero modernization failure.",
+  "common_case": {
+    "model_code": 5,
+    "region": "Bakken",
+    "co2_tax_usd_per_kg": 0.0,
+    "ipopt": "3.14.19",
+    "linear_solver": "ma27",
+    "nlp_scaling_method": "ipopt-default",
+    "start": "historical unit/constrained/costed checkpoint chain"
+  },
+  "experiments": [
+    {
+      "environment": "IDAES 2.12.0 / Pyomo 6.10.1",
+      "free_design_variables": ["H103_temperature"],
+      "file_determinism": "ordered",
+      "max_iterations": 100,
+      "termination_condition": "maxIterations",
+      "final_unscaled_constraint_violation": 31026.337438821793,
+      "final_dual_infeasibility": 40.78291049591156,
+      "interpretation": "Even one free process design variable can trigger the ill-conditioned state solve; coupling among all eight design variables is not required for failure."
+    },
+    {
+      "environment": "IDAES 2.12.0 / Pyomo 6.10.1",
+      "free_design_variables": ["H103_temperature"],
+      "file_determinism": "sort-symbols",
+      "max_iterations": 40,
+      "termination_condition": "maxIterations",
+      "final_unscaled_constraint_violation": 4.76837158203125e-7,
+      "final_dual_infeasibility": 8.172016678016993,
+      "r102_temperature_difference_from_migrated_csv_K": -0.1287051471357472,
+      "interpretation": "Symbol ordering keeps the one-DOF solve feasible and near the archived full optimum but needs more iterations for an accepted termination."
+    },
+    {
+      "environment": "IDAES 2.12.0 / Pyomo 6.10.1",
+      "free_design_variables": ["H103_temperature"],
+      "file_determinism": "sort-symbols",
+      "max_iterations": 100,
+      "termination_condition": "optimal",
+      "solver_status": "ok",
+      "wall_seconds": 252.08954405784607,
+      "result": {
+        "msp_usd_per_mj": 0.010325944831276955,
+        "r102_temperature_K": 593.388651327302,
+        "total_annualized_cost_usd_per_year": 208300334.58053976
+      },
+      "interpretation": "Deterministic symbol ordering converts the modern one-DOF case from failure to an accepted IPOPT optimum; it is not expected to equal the eight-DOF paper result because seven decisions remain fixed."
+    },
+    {
+      "environment": "IDAES 2.12.0 / Pyomo 6.10.1",
+      "free_design_variables": "all eight published variables",
+      "file_determinism": "sort-symbols",
+      "max_iterations": 100,
+      "termination_condition": "maxIterations",
+      "final_unscaled_constraint_violation": 81963.09241308365,
+      "final_dual_infeasibility": 637.0438130718488,
+      "interpretation": "Ordering materially improves the first step but is not sufficient for the complete modern optimization."
+    },
+    {
+      "environment": "Candidate A1 IDAES 2.0.0.dev3 / Pyomo 6.4.2",
+      "free_design_variables": "all eight published variables",
+      "file_determinism": "sort-symbols",
+      "max_iterations": 100,
+      "termination_condition": "optimal",
+      "solver_status": "ok",
+      "wall_seconds": 705.7901821136475,
+      "difference_from_migrated_csv": {
+        "msp_usd_per_mj": -8.715787432056477e-10,
+        "r102_temperature_K": -0.0007631773949015042,
+        "total_annualized_cost_usd_per_year": -39.03840443491936,
+        "product_lhv_mw": -0.0002099487417126511
+      },
+      "interpretation": "Candidate A1 remains convergent and reproduces the archived result under the same high-level deterministic-order request."
+    }
+  ],
+  "conclusions": [
+    "The modern failure is present with only one free design variable, so it is rooted in the ill-conditioned state equations rather than requiring eight-way design-variable coupling.",
+    "NL ordering materially changes the modern numerical path and can recover the one-DOF solve.",
+    "The same sort-symbols request does not make the full Candidate A1 and modern solver outcomes agree, so the high-level determinism setting is not a complete cross-version ordering control.",
+    "The next control must compare the actual emitted NL row/column symbol maps and writer grouping across Pyomo 6.4.2 and 6.10.1."
+  ]
+}
