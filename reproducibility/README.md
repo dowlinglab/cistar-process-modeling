@@ -12,6 +12,8 @@ snapshots and future reruns.
   notebook, archived data, and required comparison method.
 - `audit_published_tables.py` compares Tables S4-S6 with the two checked-in CSV
   families.
+- `audit_source_tables.py` compares the model inputs in Tables S1-S3 with the
+  public Python, notebook, and CSV sources.
 - `runs/` contains immutable structured records for executed reproduction
   attempts, including failed or interrupted attempts that affect provenance.
 
@@ -26,6 +28,7 @@ From the repository root:
 ```bash
 python reproducibility/audit_published_tables.py
 python reproducibility/audit_published_tables.py --snapshot migrated
+python reproducibility/audit_source_tables.py
 python -m unittest discover -s tests -v
 ```
 
@@ -60,6 +63,23 @@ This covers Main Figure 4 and Supporting Figures S3, S4, and S6-S8. The command
 reads `results/solution_data.xlsx` and the checked-in postprocessed result CSVs,
 uses the original composite-curve algorithm, and never overwrites the archived
 publication plots.
+
+Regenerate the other eight quantitative figures from the immutable optimal
+checkpoints and checked-in CSV inputs:
+
+```bash
+python reproducibility/regenerate_archived_figures.py \
+  --output-dir /path/outside/the/repository/archived-figures \
+  --record /path/outside/the/repository/archived-figures.json
+```
+
+This covers Main Figures 3 and 5-8 and Supporting Figures S1, S2, and S5.
+The driver builds each ROK topology once, loads the archived optimal states,
+and reuses the M5 topology for all regional checkpoints. The external JSON
+record preserves every component series and SHA-256 source hash. Published
+emissions-label differences remain classified under
+`EMISSIONS-NORMALIZATION-001`; the EF-7 and EF-10 Figure 7 labels retain the
+already documented publication-snapshot drift.
 
 Rerun one M5 regional case with the initialization and temperature
 perturbation used by its published notebook:
@@ -156,6 +176,17 @@ The audit also labels 22 postprocessed decision/cost values
 which establishes that the SI tables and the checked-in higher-precision CSVs
 were not generated from precisely the same saved optimization snapshot. The
 differences are reported rather than erased by widening tolerances.
+
+The Tables S1-S3 audit records two additional provenance findings. Table S1
+prints a 295-500 K bound for H104, but the optimization update never applies
+those bounds; a reconstructed A1 model retains the property-package range
+273.15-1500 K. Table S2's cooling-water and refrigerated-water prices are split
+between the optimization source and the publication postprocessing added in
+commit `957e363`. The printed methane-recovery fraction and methane GWP do not
+appear as semantic inputs anywhere in the public computational source or its
+history back to the initial private-repository migration. They may have been
+used upstream to prepare the regional emissions factors, but that derivation
+was not published in this repository.
 
 Finally, the migrated snapshot has 29 additional MSP/TAC differences labeled
 `LEGACY-ECONOMICS-POSTPROCESSING-001`. Commit `957e363` explains these: it
