@@ -61,6 +61,17 @@ def _idaes_provenance() -> dict[str, str]:
     return provenance
 
 
+def _apply_modern_autoscaling(model: Any, norm: int) -> None:
+    """Overwrite legacy suffixes using the IDAES 2.12 scaling toolbox."""
+    try:
+        from idaes.core.scaling import AutoScaler
+    except ImportError as err:
+        raise RuntimeError(
+            "Modern autoscaling requires an IDAES release that exposes AutoScaler."
+        ) from err
+    AutoScaler(overwrite=True).scale_model(model, norm=norm)
+
+
 def _checkpoint(name: str) -> Path:
     return REPO_ROOT / "initialization_files" / name
 
@@ -266,6 +277,15 @@ def main() -> int:
         help="Set Ipopt's nlp_scaling_method; omit to retain its default.",
     )
     parser.add_argument(
+        "--modern-autoscale",
+        action="store_true",
+        help=(
+            "Overwrite variable scaling by current magnitude and constraint "
+            "scaling by Jacobian norm using the IDAES 2.12 AutoScaler."
+        ),
+    )
+    parser.add_argument("--autoscale-norm", type=int, default=2)
+    parser.add_argument(
         "--initial-optimal-tax",
         type=float,
         metavar="USD_PER_KG",
@@ -292,6 +312,8 @@ def main() -> int:
             "ipopt": _solver_version(ipopt, solver_environment),
             "linear_solver": args.linear_solver,
             "nlp_scaling_method": args.nlp_scaling_method or "ipopt-default",
+            "modern_autoscale": args.modern_autoscale,
+            "autoscale_norm": args.autoscale_norm if args.modern_autoscale else None,
         },
         "case": {"model_code": 5, "region": "Bakken"},
         "tax_rate_units": "USD/kg CO2e",
@@ -335,6 +357,8 @@ def main() -> int:
                 metric: starting_results[metric] - archived[metric]
                 for metric in starting_results
             }
+        if args.modern_autoscale:
+            _apply_modern_autoscaling(model, args.autoscale_norm)
         solver = SolverFactory("ipopt", executable=str(ipopt))
         solver.options.update(
             {

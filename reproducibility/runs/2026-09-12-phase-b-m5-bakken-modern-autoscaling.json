@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "experiment_id": "B-IDAES-2.12-M5-BAKKEN-AUTOSCALING-001",
+  "date": "2026-09-12",
+  "base_git_commit": "ca717a5",
+  "branch": "codex/update-idaes-2.12",
+  "environment": {
+    "python": "3.10.8",
+    "idaes": "2.12.0",
+    "pyomo": "6.10.1",
+    "ipopt": "3.14.19",
+    "linear_solver": "ma57",
+    "nlp_scaling_method": "user-scaling"
+  },
+  "scaling_method": {
+    "implementation": "idaes.core.scaling.AutoScaler",
+    "overwrite_existing_factors": true,
+    "variable_method": "inverse current magnitude",
+    "constraint_method": "Jacobian 2-norm",
+    "application_point": "after loading the feasible checkpoint and opening the eight optimization degrees of freedom"
+  },
+  "experiments": [
+    {
+      "start": "fixed costed checkpoint",
+      "max_iterations": 10,
+      "termination_condition": "maxIterations",
+      "iteration_zero_scaled_dual_infeasibility": 9.18,
+      "iteration_ten_scaled_dual_infeasibility": 0.41617078411835356,
+      "iteration_ten_scaled_constraint_violation": 0.04240952514053393,
+      "iteration_ten_unscaled_constraint_violation": 0.5888014498801388,
+      "conclusion": "Modern autoscaling prevents the catastrophic first step and reduces the scaled dual infeasibility, but does not converge in ten iterations."
+    },
+    {
+      "start": "fixed costed checkpoint",
+      "max_iterations": 30,
+      "termination_condition": "maxIterations",
+      "solve_seconds": 210.1858789920807,
+      "change_from_start": {
+        "msp_usd_per_mj": -5.769223052187116e-5,
+        "t_r102_k": 0.18774012107723603,
+        "tac_usd_per_year": -138729.0467031002
+      },
+      "conclusion": "The solve remains close to its feasible costed start but makes insufficient optimization progress."
+    },
+    {
+      "start": "archived tax-zero optimum",
+      "max_iterations": 100,
+      "termination_condition": "maxIterations",
+      "solve_seconds": 425.2007358074188,
+      "difference_from_migrated_result": {
+        "msp_usd_per_mj": -6.0366043621112864e-5,
+        "t_r102_k": -0.0364038456086746,
+        "tac_usd_per_year": -12955.087624967098,
+        "product_lhv_mw": 3.98602496318631
+      },
+      "conclusion": "The autoscaled solve remains near the published optimum and is much more stable than inherited/default scaling, but it does not satisfy the requested IPOPT convergence gate in 100 iterations."
+    }
+  ],
+  "legacy_scaling_defect": "The existing Arc loop in set_scaling_factors references the final unit-loop variable instead of the Arc being traversed, so it does not apply the intended equality-constraint scaling to expanded Arc constraints.",
+  "conclusion": "IDAES 2.12 AutoScaler materially stabilizes the optimization, but does not yet provide a reliable converged reproduction. Further work should isolate the remaining dual infeasibility and test a corrected modular scaling policy rather than declaring the near-published iterate reproduced."
+}
