@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "experiment_id": "A1-ARCHIVED-COMPOSITE-CURVES-001",
+  "date": "2026-09-12",
+  "base_git_commit": "e7c4389",
+  "environment": {
+    "candidate": "A1 clean reconstruction",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "python": "3.10.8",
+    "idaes": "2.0.0.dev3",
+    "idaes_candidate_commit": "66935c80a5aafc3ffc9ab3d387e488cddd4f233b",
+    "pyomo": "6.4.2",
+    "matplotlib": "3.6.2",
+    "pandas": "1.5.1"
+  },
+  "source": {
+    "workbook": "results/solution_data.xlsx",
+    "workbook_sha256": "32ad46e8da26f1dd6190c77c0e39a93317ba999ffc753af20fdd9aa64f782c19",
+    "result_tables": [
+      "optimal_data_wrt_ROK_models.csv",
+      "optimal_data_wrt_c_tax_rates.csv",
+      "optimal_data_wrt_region.csv"
+    ]
+  },
+  "command": "python reproducibility/regenerate_composite_curves.py --output-dir /path/outside/repository/composite-curves --record /path/outside/repository/composite-curves.json",
+  "status": "complete",
+  "curve_count": 23,
+  "coverage": {
+    "paper_results": ["F4", "FS3", "FS4", "FS6", "FS7", "FS8"],
+    "rok_model_cases": 4,
+    "carbon_tax_cases": 7,
+    "regional_cases": 13
+  },
+  "coordinate_shape": {
+    "hot_points_per_curve": 9,
+    "cold_points_per_curve": 5,
+    "isothermal_duties_per_curve": 2
+  },
+  "isothermal_handling": "The workbook stores both reactor inlet and outlet temperatures as exactly equal. The regenerator represents each nonzero isothermal reactor duty as an explicit horizontal segment at the reactor temperature, recovering the archived plot geometry without division by zero.",
+  "visual_qa": {
+    "renderer": "Poppler pdftoppm at 120 dpi",
+    "representative_pairs": [
+      "F4: M5, Bakken, 0.045 USD/kg CO2e",
+      "FS4: M5, Bakken, 0.41 USD/kg CO2e",
+      "FS7: M5, EF-11, 0.045 USD/kg CO2e"
+    ],
+    "result": "The regenerated and archived curves have matching topology, horizontal reactor-duty plateaus, axes, legends, and labels, with no clipping or rendering defects. PDFs are not required to be byte-identical because creation metadata and backend rendering details vary."
+  },
+  "output_policy": "Generated PDFs and the full coordinate record were written outside the repository. Checked-in publication PDFs were not modified."
+}

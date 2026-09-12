@@ -1,0 +1,22 @@
+name: cistar-paper-reproduction
+channels:
+  - conda-forge
+dependencies:
+  - python=3.8.5
+  - pip=22.2.2
+  - numpy=1.23.5
+  - pandas=1.5.1
+  - scipy=1.9.3
+  - matplotlib=3.6.2
+  - networkx=2.8.8
+  - pint=0.20.1
+  - sympy=1.11.1
+  - openpyxl=3.0.10
+  - xlrd=2.0.1
+  - ipython=7.34.0
+  - jupyter=1.0.0
+  - pip:
+      - pyomo==6.4.2
+      - omlt==0.3.1
+      - rbfopt==4.2.5
+      - pytest==7.2.0

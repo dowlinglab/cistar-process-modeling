@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "experiment_id": "A1-M5-BAKKEN-TAX410-SOLVER-DIAGNOSTICS-001",
+  "date": "2026-09-11",
+  "git_commit": "9bc5030",
+  "environment": {
+    "candidate": "A1",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "python": "3.10.8",
+    "idaes": "2.0.0.dev3",
+    "idaes_commit": "66935c80a5aafc3ffc9ab3d387e488cddd4f233b",
+    "pyomo": "6.4.2",
+    "ipopt": "3.14.19"
+  },
+  "transition": {
+    "model_code": 5,
+    "region": "Bakken",
+    "archived_start_tax_usd_per_tonne": 190.0,
+    "target_tax_usd_per_tonne": 410.0,
+    "archived_start": "CISTAR_optimal_solution_Bakken_C_tax_0.19_M5_purge_0.01_sequential_solve.json.gz"
+  },
+  "attempts": [
+    {
+      "linear_solver": "ma27",
+      "termination": "interrupted_diagnostic",
+      "last_observed_iteration": 43,
+      "observations": [
+        "Entered restoration at iteration 14.",
+        "Later produced an AMPL evaluation error.",
+        "Remained grossly infeasible and was interrupted because the full-series MA27 run had already established maxIterations at iteration 100."
+      ]
+    },
+    {
+      "linear_solver": "ma57",
+      "termination": "maxIterations",
+      "iterations": 100,
+      "ipopt_seconds": 3073.528,
+      "wall_seconds": 3551.5098099708557,
+      "objective_msp_usd_per_mj": 0.01950328921147609,
+      "archived_msp_usd_per_mj": 0.019481159805222,
+      "unscaled_constraint_violation": 12089.481779038906,
+      "dual_infeasibility": 69380.20967688823,
+      "complementarity": 4636075.551312634,
+      "valid_optimum": false
+    }
+  ],
+  "conclusion": "Reloading the exact archived 190 USD/tonne optimum does not make the direct 190-to-410 transition reliable with MA27 or MA57. This rules out accumulated sequential drift and motivates smaller carbon-tax continuation steps."
+}

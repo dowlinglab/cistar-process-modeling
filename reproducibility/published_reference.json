@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "paper": {
+    "title": "Multiscale Equation-Oriented Optimization Decreases the Carbon Intensity of Shale Gas to Liquid Fuel Processes",
+    "doi": "10.1021/acssuschemeng.4c00933",
+    "main_article": "sc4c00933.pdf",
+    "supporting_information": "sc4c00933_si_002.pdf"
+  },
+  "comparison_policy": {
+    "description": "Absolute tolerances reflect one half-unit in the final displayed digit of the published tables. These are transcription tolerances, not solver regression tolerances.",
+    "metrics": {
+      "msp_usd_per_mj": 0.00005,
+      "downstream_emissions_g_co2e_per_mj": 0.005,
+      "product_lhv_mw": 0.5,
+      "h2_rebate_usd_per_year": 50000.0,
+      "tac_usd_per_year": 500000.0,
+      "t_r102_k": 0.5,
+      "t_h104_k": 0.5,
+      "t_h105_k": 0.5,
+      "p_f101_bar": 0.005,
+      "t_h106_k": 0.5,
+      "p_h106_bar": 0.005,
+      "p_f102_bar": 0.005,
+      "qs_mw": 0.05,
+      "qw_mw": 0.05
+    }
+  },
+  "table_s1": {
+    "source": "Supporting Information, Table S1, page S28",
+    "design_variables": [
+      {"name": "T_R102", "unit": "K", "lower": 500.0, "upper": 700.0},
+      {"name": "T_H104", "unit": "K", "lower": 295.0, "upper": 500.0},
+      {"name": "T_H105", "unit": "K", "lower_expression": "T_H104 - 2", "upper_expression": "T_H104"},
+      {"name": "delta_P_F101", "unit": "bar", "lower": null, "upper": 0.0},
+      {"name": "T_H106", "unit": "K", "lower": 290.0, "upper_expression": "T_F101"},
+      {"name": "P_H106", "unit": "Pa", "lower": 100000.0, "upper": 250000.0},
+      {"name": "delta_P_F102", "unit": "bar", "lower": null, "upper": 0.0},
+      {"name": "Q_s", "unit": "MW", "lower_expression": "Equation S21", "upper": null}
+    ]
+  },
+  "table_s2": {
+    "source": "Supporting Information, Table S2, page S28",
+    "parameters": [
+      {"name": "raw_material_cost", "value": 8.53, "unit": "USD/GJ NGL"},
+      {"name": "ngl_heating_cost", "value": 5.34, "unit": "USD/GJ"},
+      {"name": "cooling_water_cost", "value": 0.38, "unit": "USD/GJ"},
+      {"name": "refrigerated_water_cost", "value": 4.77, "unit": "USD/GJ"},
+      {"name": "electricity_cost", "value": 42.6, "unit": "USD/GJ"},
+      {"name": "hydrogen_membrane_cost", "value": 50.0, "unit": "USD/m2"},
+      {"name": "catalyst_cost", "value": 336.0, "unit": "USD/kg"},
+      {"name": "methane_recovery_fraction", "value": 0.02, "unit": "dimensionless"},
+      {"name": "methane_gwp", "value": 29.8, "unit": "kg CO2e/kg CH4"},
+      {"name": "heating_emissions_factor", "value": 82.89, "unit": "kg CO2e/GJ"},
+      {"name": "electricity_emissions_factor", "value": 134.75, "unit": "kg CO2e/GJ"}
+    ]
+  },
+  "table_s3": {
+    "source": "Supporting Information, Table S3, page S29",
+    "unit": "g CO2e/MJ NGL feed",
+    "upstream_emissions_factor": {
+      "Bakken": 8.23,
+      "EF-1": 6.74,
+      "EF-2": 7.52,
+      "EF-3": 7.35,
+      "EF-4": 7.66,
+      "EF-5": 8.04,
+      "EF-6": 8.30,
+      "EF-7": 8.51,
+      "EF-8": 8.52,
+      "EF-9": 9.13,
+      "EF-10": 9.51,
+      "EF-11": 9.57,
+      "EF-12": 13.06,
+      "EF-Basin": 9.10
+    }
+  },
+  "table_s4": {
+    "source": "Supporting Information, Table S4, page S30",
+    "scenario": {"region": "Bakken", "co2_tax_usd_per_tonne": 45.0},
+    "rows": [
+      {"rok_model": "M2", "msp_usd_per_mj": 0.0114, "downstream_emissions_g_co2e_per_mj": 9.17, "product_lhv_mw": 874.0, "h2_rebate_usd_per_year": 92400000.0, "tac_usd_per_year": 233000000.0, "t_r102_k": 594.0, "t_h104_k": 300.0, "t_h105_k": 299.0, "p_f101_bar": 4.98, "t_h106_k": 293.0, "p_h106_bar": 1.84, "p_f102_bar": 1.49, "qs_mw": 93.9, "qw_mw": 21.5},
+      {"rok_model": "M3", "msp_usd_per_mj": 0.0113, "downstream_emissions_g_co2e_per_mj": 9.23, "product_lhv_mw": 876.0, "h2_rebate_usd_per_year": 97100000.0, "tac_usd_per_year": 229000000.0, "t_r102_k": 598.0, "t_h104_k": 300.0, "t_h105_k": 299.0, "p_f101_bar": 4.98, "t_h106_k": 293.0, "p_h106_bar": 1.88, "p_f102_bar": 1.49, "qs_mw": 94.2, "qw_mw": 21.2},
+      {"rok_model": "M4", "msp_usd_per_mj": 0.0114, "downstream_emissions_g_co2e_per_mj": 9.09, "product_lhv_mw": 867.0, "h2_rebate_usd_per_year": 85500000.0, "tac_usd_per_year": 238000000.0, "t_r102_k": 658.0, "t_h104_k": 309.0, "t_h105_k": 308.0, "p_f101_bar": 4.98, "t_h106_k": 303.0, "p_h106_bar": 1.55, "p_f102_bar": 1.29, "qs_mw": 93.7, "qw_mw": 22.6},
+      {"rok_model": "M5", "msp_usd_per_mj": 0.0114, "downstream_emissions_g_co2e_per_mj": 9.08, "product_lhv_mw": 868.0, "h2_rebate_usd_per_year": 85900000.0, "tac_usd_per_year": 238000000.0, "t_r102_k": 651.0, "t_h104_k": 309.0, "t_h105_k": 308.0, "p_f101_bar": 4.98, "t_h106_k": 302.0, "p_h106_bar": 1.56, "p_f102_bar": 1.30, "qs_mw": 93.7, "qw_mw": 22.5}
+    ]
+  },
+  "table_s5": {
+    "source": "Supporting Information, Table S5, page S31",
+    "scenario": {"region": "Bakken", "rok_model": "M5"},
+    "rows": [
+      {"co2_tax_usd_per_tonne": 0.0, "msp_usd_per_mj": 0.0104, "downstream_emissions_g_co2e_per_mj": 9.08, "product_lhv_mw": 868.0, "h2_rebate_usd_per_year": 86000000.0, "tac_usd_per_year": 217000000.0, "t_r102_k": 651.0, "t_h104_k": 309.0, "t_h105_k": 308.0, "p_f101_bar": 4.98, "t_h106_k": 302.0, "p_h106_bar": 1.56, "p_f102_bar": 1.30, "qs_mw": 93.7, "qw_mw": 22.5},
+      {"co2_tax_usd_per_tonne": 0.01, "msp_usd_per_mj": 0.0104, "downstream_emissions_g_co2e_per_mj": 9.08, "product_lhv_mw": 868.0, "h2_rebate_usd_per_year": 86000000.0, "tac_usd_per_year": 217000000.0, "t_r102_k": 651.0, "t_h104_k": 309.0, "t_h105_k": 308.0, "p_f101_bar": 4.98, "t_h106_k": 302.0, "p_h106_bar": 1.56, "p_f102_bar": 1.30, "qs_mw": 93.7, "qw_mw": 22.5},
+      {"co2_tax_usd_per_tonne": 1.0, "msp_usd_per_mj": 0.0104, "downstream_emissions_g_co2e_per_mj": 9.08, "product_lhv_mw": 868.0, "h2_rebate_usd_per_year": 86000000.0, "tac_usd_per_year": 218000000.0, "t_r102_k": 651.0, "t_h104_k": 309.0, "t_h105_k": 308.0, "p_f101_bar": 4.98, "t_h106_k": 302.0, "p_h106_bar": 1.56, "p_f102_bar": 1.30, "qs_mw": 93.7, "qw_mw": 22.5},
+      {"co2_tax_usd_per_tonne": 17.0, "msp_usd_per_mj": 0.0108, "downstream_emissions_g_co2e_per_mj": 9.08, "product_lhv_mw": 868.0, "h2_rebate_usd_per_year": 85900000.0, "tac_usd_per_year": 225000000.0, "t_r102_k": 651.0, "t_h104_k": 308.0, "t_h105_k": 308.0, "p_f101_bar": 4.98, "t_h106_k": 302.0, "p_h106_bar": 1.56, "p_f102_bar": 1.30, "qs_mw": 93.7, "qw_mw": 22.5},
+      {"co2_tax_usd_per_tonne": 45.0, "msp_usd_per_mj": 0.0114, "downstream_emissions_g_co2e_per_mj": 9.08, "product_lhv_mw": 868.0, "h2_rebate_usd_per_year": 85900000.0, "tac_usd_per_year": 238000000.0, "t_r102_k": 651.0, "t_h104_k": 308.0, "t_h105_k": 308.0, "p_f101_bar": 4.98, "t_h106_k": 302.0, "p_h106_bar": 1.56, "p_f102_bar": 1.30, "qs_mw": 93.7, "qw_mw": 22.5},
+      {"co2_tax_usd_per_tonne": 190.0, "msp_usd_per_mj": 0.0146, "downstream_emissions_g_co2e_per_mj": 9.08, "product_lhv_mw": 868.0, "h2_rebate_usd_per_year": 85900000.0, "tac_usd_per_year": 305000000.0, "t_r102_k": 651.0, "t_h104_k": 308.0, "t_h105_k": 308.0, "p_f101_bar": 4.98, "t_h106_k": 302.0, "p_h106_bar": 1.56, "p_f102_bar": 1.30, "qs_mw": 93.7, "qw_mw": 22.5},
+      {"co2_tax_usd_per_tonne": 410.0, "msp_usd_per_mj": 0.0195, "downstream_emissions_g_co2e_per_mj": 9.08, "product_lhv_mw": 868.0, "h2_rebate_usd_per_year": 85900000.0, "tac_usd_per_year": 407000000.0, "t_r102_k": 651.0, "t_h104_k": 308.0, "t_h105_k": 308.0, "p_f101_bar": 4.98, "t_h106_k": 302.0, "p_h106_bar": 1.56, "p_f102_bar": 1.30, "qs_mw": 93.7, "qw_mw": 22.5}
+    ]
+  },
+  "table_s6": {
+    "source": "Supporting Information, Table S6, pages S32-S33",
+    "scenario": {"rok_model": "M5", "co2_tax_usd_per_tonne": 45.0},
+    "rows": [
+      {"region": "Bakken", "msp_usd_per_mj": 0.0114, "downstream_emissions_g_co2e_per_mj": 9.08, "product_lhv_mw": 868.0, "h2_rebate_usd_per_year": 85900000.0, "tac_usd_per_year": 238000000.0, "t_r102_k": 651.0, "t_h104_k": 309.0, "t_h105_k": 308.0, "p_f101_bar": 4.98, "t_h106_k": 302.0, "p_h106_bar": 1.56, "p_f102_bar": 1.30, "qs_mw": 93.7, "qw_mw": 22.5},
+      {"region": "EF-1", "msp_usd_per_mj": 0.0114, "downstream_emissions_g_co2e_per_mj": 7.68, "product_lhv_mw": 919.0, "h2_rebate_usd_per_year": 74100000.0, "tac_usd_per_year": 264000000.0, "t_r102_k": 669.0, "t_h104_k": 298.0, "t_h105_k": 297.0, "p_f101_bar": 4.99, "t_h106_k": 291.0, "p_h106_bar": 1.80, "p_f102_bar": 1.50, "qs_mw": 83.6, "qw_mw": 21.8},
+      {"region": "EF-2", "msp_usd_per_mj": 0.0114, "downstream_emissions_g_co2e_per_mj": 7.68, "product_lhv_mw": 919.0, "h2_rebate_usd_per_year": 74100000.0, "tac_usd_per_year": 265000000.0, "t_r102_k": 669.0, "t_h104_k": 298.0, "t_h105_k": 297.0, "p_f101_bar": 4.99, "t_h106_k": 291.0, "p_h106_bar": 1.80, "p_f102_bar": 1.50, "qs_mw": 83.6, "qw_mw": 21.8},
+      {"region": "EF-3", "msp_usd_per_mj": 0.0113, "downstream_emissions_g_co2e_per_mj": 7.31, "product_lhv_mw": 925.0, "h2_rebate_usd_per_year": 76900000.0, "tac_usd_per_year": 264000000.0, "t_r102_k": 665.0, "t_h104_k": 297.0, "t_h105_k": 296.0, "p_f101_bar": 4.99, "t_h106_k": 291.0, "p_h106_bar": 1.79, "p_f102_bar": 1.50, "qs_mw": 80.3, "qw_mw": 21.1},
+      {"region": "EF-4", "msp_usd_per_mj": 0.0113, "downstream_emissions_g_co2e_per_mj": 7.31, "product_lhv_mw": 925.0, "h2_rebate_usd_per_year": 76900000.0, "tac_usd_per_year": 264000000.0, "t_r102_k": 665.0, "t_h104_k": 297.0, "t_h105_k": 296.0, "p_f101_bar": 4.99, "t_h106_k": 291.0, "p_h106_bar": 1.79, "p_f102_bar": 1.50, "qs_mw": 80.3, "qw_mw": 21.1},
+      {"region": "EF-5", "msp_usd_per_mj": 0.0113, "downstream_emissions_g_co2e_per_mj": 7.31, "product_lhv_mw": 925.0, "h2_rebate_usd_per_year": 76900000.0, "tac_usd_per_year": 265000000.0, "t_r102_k": 665.0, "t_h104_k": 297.0, "t_h105_k": 296.0, "p_f101_bar": 4.99, "t_h106_k": 291.0, "p_h106_bar": 1.79, "p_f102_bar": 1.50, "qs_mw": 80.3, "qw_mw": 21.1},
+      {"region": "EF-6", "msp_usd_per_mj": 0.0113, "downstream_emissions_g_co2e_per_mj": 8.61, "product_lhv_mw": 853.0, "h2_rebate_usd_per_year": 88900000.0, "tac_usd_per_year": 229000000.0, "t_r102_k": 662.0, "t_h104_k": 296.0, "t_h105_k": 295.0, "p_f101_bar": 4.99, "t_h106_k": 290.0, "p_h106_bar": 1.79, "p_f102_bar": 1.49, "qs_mw": 87.3, "qw_mw": 21.4},
+      {"region": "EF-7", "msp_usd_per_mj": 0.0113, "downstream_emissions_g_co2e_per_mj": 8.51, "product_lhv_mw": 858.0, "h2_rebate_usd_per_year": 88500000.0, "tac_usd_per_year": 231000000.0, "t_r102_k": 662.0, "t_h104_k": 296.0, "t_h105_k": 295.0, "p_f101_bar": 4.99, "t_h106_k": 290.0, "p_h106_bar": 1.79, "p_f102_bar": 1.49, "qs_mw": 86.8, "qw_mw": 21.3},
+      {"region": "EF-8", "msp_usd_per_mj": 0.0113, "downstream_emissions_g_co2e_per_mj": 8.24, "product_lhv_mw": 873.0, "h2_rebate_usd_per_year": 86300000.0, "tac_usd_per_year": 239000000.0, "t_r102_k": 660.0, "t_h104_k": 296.0, "t_h105_k": 295.0, "p_f101_bar": 4.99, "t_h106_k": 291.0, "p_h106_bar": 1.79, "p_f102_bar": 1.49, "qs_mw": 85.4, "qw_mw": 21.2},
+      {"region": "EF-9", "msp_usd_per_mj": 0.0112, "downstream_emissions_g_co2e_per_mj": 8.35, "product_lhv_mw": 861.0, "h2_rebate_usd_per_year": 89500000.0, "tac_usd_per_year": 232000000.0, "t_r102_k": 661.0, "t_h104_k": 296.0, "t_h105_k": 295.0, "p_f101_bar": 4.99, "t_h106_k": 290.0, "p_h106_bar": 1.78, "p_f102_bar": 1.49, "qs_mw": 85.5, "qw_mw": 21.0},
+      {"region": "EF-10", "msp_usd_per_mj": 0.0112, "downstream_emissions_g_co2e_per_mj": 8.34, "product_lhv_mw": 859.0, "h2_rebate_usd_per_year": 90700000.0, "tac_usd_per_year": 231000000.0, "t_r102_k": 662.0, "t_h104_k": 296.0, "t_h105_k": 295.0, "p_f101_bar": 4.98, "t_h106_k": 290.0, "p_h106_bar": 1.77, "p_f102_bar": 1.48, "qs_mw": 85.3, "qw_mw": 20.9},
+      {"region": "EF-11", "msp_usd_per_mj": 0.0112, "downstream_emissions_g_co2e_per_mj": 8.21, "product_lhv_mw": 862.0, "h2_rebate_usd_per_year": 92100000.0, "tac_usd_per_year": 230000000.0, "t_r102_k": 661.0, "t_h104_k": 296.0, "t_h105_k": 295.0, "p_f101_bar": 4.98, "t_h106_k": 291.0, "p_h106_bar": 1.74, "p_f102_bar": 1.45, "qs_mw": 84.1, "qw_mw": 20.6},
+      {"region": "EF-12", "msp_usd_per_mj": 0.0114, "downstream_emissions_g_co2e_per_mj": 5.86, "product_lhv_mw": 991.0, "h2_rebate_usd_per_year": 75000000.0, "tac_usd_per_year": 293000000.0, "t_r102_k": 664.0, "t_h104_k": 297.0, "t_h105_k": 296.0, "p_f101_bar": 4.99, "t_h106_k": 291.0, "p_h106_bar": 1.79, "p_f102_bar": 1.50, "qs_mw": 68.9, "qw_mw": 19.4},
+      {"region": "EF-Basin", "msp_usd_per_mj": 0.0113, "downstream_emissions_g_co2e_per_mj": 7.75, "product_lhv_mw": 897.0, "h2_rebate_usd_per_year": 82400000.0, "tac_usd_per_year": 251000000.0, "t_r102_k": 664.0, "t_h104_k": 297.0, "t_h105_k": 296.0, "p_f101_bar": 4.99, "t_h106_k": 291.0, "p_h106_bar": 1.79, "p_f102_bar": 1.50, "qs_mw": 82.6, "qw_mw": 21.1}
+    ]
+  },
+  "figure_3": {
+    "source": "Main article, Figure 3, page 10355",
+    "unit": "g CO2e/MJ fuel",
+    "series": [
+      {"case": "Literature (2019)", "upstream": 9.26, "process": 14.20},
+      {"case": "M2", "upstream": 8.28, "process": 9.17},
+      {"case": "M3", "upstream": 8.29, "process": 9.23},
+      {"case": "M4", "upstream": 8.27, "process": 9.08},
+      {"case": "M5", "upstream": 8.26, "process": 9.08}
+    ]
+  },
+  "figure_6": {
+    "source": "Main article, Figure 6, page 10357",
+    "unit": "g CO2e/MJ fuel",
+    "series": [
+      {"region": "Bakken", "upstream": 8.26, "process": 9.08},
+      {"region": "EF-1", "upstream": 6.78, "process": 7.68},
+      {"region": "EF-2", "upstream": 7.56, "process": 7.68},
+      {"region": "EF-3", "upstream": 7.39, "process": 7.31},
+      {"region": "EF-4", "upstream": 7.70, "process": 7.31},
+      {"region": "EF-5", "upstream": 8.08, "process": 7.31},
+      {"region": "EF-6", "upstream": 8.33, "process": 8.61},
+      {"region": "EF-7", "upstream": 8.54, "process": 8.51},
+      {"region": "EF-8", "upstream": 8.55, "process": 8.24},
+      {"region": "EF-9", "upstream": 9.16, "process": 8.35},
+      {"region": "EF-10", "upstream": 9.54, "process": 8.34},
+      {"region": "EF-11", "upstream": 9.60, "process": 8.21},
+      {"region": "EF-12", "upstream": 13.13, "process": 5.86},
+      {"region": "EF-Basin", "upstream": 9.14, "process": 7.75}
+    ]
+  },
+  "figure_7": {
+    "source": "Main article, Figure 7, page 10358",
+    "unit": "MW liquid hydrocarbon LHV",
+    "total_labels": {
+      "Bakken": 663.0,
+      "EF-1": 736.0,
+      "EF-2": 736.0,
+      "EF-3": 741.0,
+      "EF-4": 741.0,
+      "EF-5": 741.0,
+      "EF-6": 647.0,
+      "EF-7": 653.0,
+      "EF-8": 671.0,
+      "EF-9": 655.0,
+      "EF-10": 651.0,
+      "EF-11": 652.0,
+      "EF-12": 817.0,
+      "EF-Basin": 703.0
+    }
+  },
+  "figure_s1": {
+    "source": "Supporting Information, Figure S1, page S20",
+    "unit": "mol/s liquid hydrocarbon",
+    "total_labels": {"M2": 178.9, "M3": 179.4, "M4": 163.4, "M5": 164.9}
+  },
+  "figure_s2": {
+    "source": "Supporting Information, Figure S2, page S21",
+    "unit": "mole-percent butene and heavier olefins",
+    "values": {"M2": 74.18, "M3": 74.33, "M4": 76.23, "M5": 76.26}
+  }
+}

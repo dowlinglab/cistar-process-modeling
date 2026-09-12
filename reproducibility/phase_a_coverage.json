@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "phase": "A",
+  "assessment_date": "2026-09-12",
+  "historical_environment": {
+    "status": "clean_reconstruction_validated",
+    "python": "3.10.8",
+    "idaes": "2.0.0.dev3",
+    "idaes_commit": "66935c80a5aafc3ffc9ab3d387e488cddd4f233b",
+    "pyomo": "6.4.2",
+    "ipopt_available": "3.14.19",
+    "ipopt_published": "3.13.2",
+    "linear_solvers_tested": ["ma27", "ma57"],
+    "platform": "macOS arm64",
+    "limitation": "The paper's IPOPT 3.13.2 executable and original host platform were not recovered. The exact surviving IDAES commit and Pyomo version were recovered and installed from a clean declarative environment."
+  },
+  "pr_gate": {
+    "ready": true,
+    "basis": "All 22 published figures and tables have an explicit evidence-backed disposition. Every quantitative artifact has a deterministic archive replay; every surviving optimization case was attempted on the documented notebook path, and nonreproducing cases have solver/scaling diagnostics and controls.",
+    "does_not_claim": [
+      "byte-identical figure PDFs",
+      "recovery of unpublished source artwork for Figures 1 and 2",
+      "exact reproduction of EF-2 or EF-11 fresh optimization",
+      "the archived EF-8 point is the best local optimum",
+      "the paper and public repository contain the same emissions normalization or optimization snapshot"
+    ]
+  },
+  "evidence": {
+    "clean_environment_commit": "e7c4389",
+    "archived_composite_curves": "A1-ARCHIVED-COMPOSITE-CURVES-001",
+    "archived_noncomposite_figures": "A1-ARCHIVED-NONCOMPOSITE-FIGURES-001",
+    "source_tables": "A1-SOURCE-TABLES-001",
+    "rok_fresh_solves": "A1-ROK-MODEL-COMPARISON-MA27-001",
+    "tax_fresh_solves": [
+      "A1-M5-BAKKEN-TAX-SERIES-MA27-001",
+      "A1-M5-BAKKEN-TAX410-SOLVER-DIAGNOSTICS-001",
+      "A1-M5-BAKKEN-TAX410-CONTINUATION-MA27-001",
+      "A1-M5-BAKKEN-TAX410-ARCHIVED-RESTART-MA27-001"
+    ],
+    "regional_fresh_solves": "A1-M5-REGIONAL-TAX45-MA27-001",
+    "published_table_audit": "reproducibility/audit_published_tables.py"
+  },
+  "items": [
+    {
+      "id": "F1",
+      "status": "manual_noncomputational",
+      "assessment": "The process schematic is publication artwork, not a computed result. Its units and connectivity were reviewed against create_flowsheet/define_arcs; no editable artwork source exists in the public repository."
+    },
+    {
+      "id": "F2",
+      "status": "manual_noncomputational",
+      "assessment": "The multiscale workflow schematic is publication artwork. Its sequence was reviewed against the surviving initialization, costing, optimization, and postprocessing notebooks; no editable artwork source exists publicly."
+    },
+    {
+      "id": "F3",
+      "status": "reproduced_surviving_snapshot_with_published_difference",
+      "assessment": "Checkpoint replay reproduces the archived bars; all four ROK solves reproduce the surviving numerical snapshot. Article labels retain EMISSIONS-NORMALIZATION-001."
+    },
+    {
+      "id": "F4",
+      "status": "reproduced",
+      "assessment": "The M5/Bakken optimal composite curve is deterministically regenerated, and its underlying fresh ROK solve reproduces the archived state."
+    },
+    {
+      "id": "F5",
+      "status": "reproduced_with_solver_path_sensitivity",
+      "assessment": "The archived curve is regenerated. Six tax cases reproduce directly; the 190-to-410 jump fails with MA27 and MA57, while the archived 410 optimum is stable and smaller continuation steps find a distinct lower local optimum."
+    },
+    {
+      "id": "F6",
+      "status": "partial_fresh_reproduction_with_diagnosed_exceptions",
+      "assessment": "The complete archived regional series is regenerated. Nine of 13 fresh regional notebook-path cases closely reproduce; EF-8 and EF-10 move to alternate states, and EF-2/EF-11 fail under both HSL solvers. Article labels also retain EMISSIONS-NORMALIZATION-001."
+    },
+    {
+      "id": "F7",
+      "status": "partial_fresh_reproduction_with_diagnosed_exceptions",
+      "assessment": "All archived component stacks are regenerated. Fresh regional exceptions are documented; EF-7 and EF-10 printed totals also demonstrate PUBLISHED-SNAPSHOT-DRIFT-001."
+    },
+    {
+      "id": "F8",
+      "status": "partial_fresh_reproduction_with_diagnosed_exceptions",
+      "assessment": "The complete archived MSP/methane scatter is regenerated from checked-in inputs. Fresh regional exceptions are shared with Figures 6-7 and Table S6."
+    },
+    {
+      "id": "FS1",
+      "status": "reproduced",
+      "assessment": "All four checkpoint component stacks regenerate, and all four ROK fresh solves reproduce the surviving snapshot."
+    },
+    {
+      "id": "FS2",
+      "status": "reproduced",
+      "assessment": "All four C4+ olefin percentages regenerate within 0.002253 percentage point of the printed labels."
+    },
+    {
+      "id": "FS3",
+      "status": "reproduced",
+      "assessment": "All M2-M4 archived composite curves regenerate; the corresponding fresh ROK solves reproduce the archived states."
+    },
+    {
+      "id": "FS4",
+      "status": "reproduced_with_solver_path_sensitivity",
+      "assessment": "All seven archived carbon-tax composite curves regenerate. The 410 USD/tonne fresh transition has the local-solution behavior recorded for Figure 5."
+    },
+    {
+      "id": "FS5",
+      "status": "reproduced",
+      "assessment": "The regional feed-composition plot regenerates directly from data/Shale_composition.csv."
+    },
+    {
+      "id": "FS6",
+      "status": "partial_fresh_reproduction_with_diagnosed_exceptions",
+      "assessment": "All EF-1 through EF-6 archived curves regenerate. EF-2 is the only fresh exact-path failure in this panel; its MA27/MA57 and checkpoint-control diagnostics are recorded."
+    },
+    {
+      "id": "FS7",
+      "status": "partial_fresh_reproduction_with_diagnosed_exceptions",
+      "assessment": "All EF-7 through EF-12 archived curves regenerate. EF-8/EF-10 alternate states and the EF-11 exact-path failure are fully recorded."
+    },
+    {
+      "id": "FS8",
+      "status": "reproduced",
+      "assessment": "The EF-Basin archived curve regenerates and the fresh solve closely reproduces its detailed state."
+    },
+    {
+      "id": "TS1",
+      "status": "audited_with_implementation_discrepancy",
+      "assessment": "Seven bounds/relations match. The printed H104 range is 295-500 K, but the reconstructed model retains 273.15-1500 K because the optimization update never applies the printed bounds."
+    },
+    {
+      "id": "TS2",
+      "status": "audited_with_provenance_gaps",
+      "assessment": "Seven parameters match directly, the two cooling prices are split between optimization and publication postprocessing, and methane recovery/GWP lack a semantic public source."
+    },
+    {
+      "id": "TS3",
+      "status": "reproduced",
+      "assessment": "All 14 regional upstream factors match the checked-in CSV within print-rounding tolerance."
+    },
+    {
+      "id": "TS4",
+      "status": "reproduced_surviving_snapshot_with_published_difference",
+      "assessment": "All four ROK cases reproduce the migrated snapshot at high precision. The paper table retains emissions-normalization and small publication-snapshot differences."
+    },
+    {
+      "id": "TS5",
+      "status": "reproduced_with_solver_path_sensitivity",
+      "assessment": "Six of seven tax cases reproduce directly. The archived 410 point is a stable local optimum; the direct notebook jump fails, and a finer continuation finds a different valid optimum."
+    },
+    {
+      "id": "TS6",
+      "status": "partial_fresh_reproduction_with_diagnosed_exceptions",
+      "assessment": "Nine of 13 regional cases closely reproduce. EF-2 and EF-11 do not yield accepted exact-path solutions under MA27 or MA57; EF-8 and EF-10 reach different stationary states."
+    }
+  ]
+}
