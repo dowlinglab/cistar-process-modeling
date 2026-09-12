@@ -70,6 +70,20 @@ table, heat-exchanger table, composite-curve coordinates, liquid-product
 component flows and LHV contributions, and upstream emissions needed to audit
 Figures 6-8 and S6-S8 as well as Table S6.
 
+Compare a completed regional run record with the archived stream and
+heat-integration sheets plus the numeric labels transcribed from Figures 6 and
+7:
+
+```bash
+python reproducibility/compare_regional_figure_data.py \
+  --run-record /path/outside/the/repository/m5-regions.json \
+  --output /path/outside/the/repository/m5-regions-comparison.json
+```
+
+The comparison reports numerical table differences separately from unit-label
+text differences because the historical IDAES table API serializes unit objects
+differently from the labels already stored in the workbook.
+
 The default `postprocessed` snapshot uses the root-level CSV files created by
 commit `957e363`, which recalculated TAC and MSP using cooling water above 303 K
 and refrigerated water from 288-303 K. The `migrated` snapshot uses the CSV files

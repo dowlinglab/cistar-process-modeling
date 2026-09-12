@@ -137,7 +137,7 @@ def _base_report(
 
 def _dataframe_payload(frame: pd.DataFrame) -> dict[str, Any]:
     """Return a JSON-safe, orientation-preserving DataFrame representation."""
-    return json.loads(frame.to_json(orient="split"))
+    return json.loads(frame.to_json(orient="split", double_precision=15))
 
 
 def _collect_figure_data(model: Any) -> dict[str, Any]:
