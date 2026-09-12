@@ -1,0 +1,279 @@
+{
+  "schema_version": 1,
+  "experiment_id": "A1-M5-REGIONAL-TAX45-MA27-001",
+  "date": "2026-09-12",
+  "source_git_commits": [
+    "23a5493",
+    "a81dff7",
+    "d9a5975",
+    "f281992"
+  ],
+  "environment": {
+    "candidate": "A1",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "python": "3.10.8",
+    "idaes": "2.0.0.dev3",
+    "idaes_commit": "66935c80a5aafc3ffc9ab3d387e488cddd4f233b",
+    "pyomo": "6.4.2",
+    "ipopt": "3.14.19",
+    "primary_linear_solver": "ma27"
+  },
+  "published_solver_difference": {
+    "published_ipopt": "3.13.2",
+    "available_ipopt": "3.14.19",
+    "assessment": "Most cases reproduce at or beyond archived precision, but EF-2, EF-8, EF-10, and EF-11 demonstrate local-stationarity or initialization sensitivity that may depend on this solver-version difference."
+  },
+  "initialization": {
+    "base": "Archived Bakken M5 unit initialization, EF-Basin constrained checkpoint, and EF-Basin costed checkpoint at 0.045 USD/kg CO2e.",
+    "regional_sequence": "Reload archived EF-Basin optimum before each region, except EF-9 reloads the archived EF-8 optimum; apply the notebook's 653 K H103 fix/unfix perturbation for EF-1, EF-6, EF-7, EF-10, and EF-11.",
+    "ipopt_options": {
+      "tol": 1e-6,
+      "bound_push": 1e-8,
+      "max_iter": 500
+    }
+  },
+  "exact_path_cases": [
+    {
+      "region": "EF-Basin",
+      "termination": "optimal",
+      "iterations": 20,
+      "ipopt_seconds": 298.852,
+      "msp_usd_per_mj": 0.011233800407213614,
+      "msp_difference_from_migrated_csv": 5.614521000896211e-12,
+      "tac_difference_usd_per_year": 237.79065915942192,
+      "unscaled_constraint_violation": 2.384185791015625e-7,
+      "classification": "reproduced"
+    },
+    {
+      "region": "EF-1",
+      "termination": "optimal",
+      "iterations": 18,
+      "ipopt_seconds": 265.709,
+      "msp_usd_per_mj": 0.011300821629141571,
+      "msp_difference_from_migrated_csv": 3.0953520996357398e-12,
+      "tac_difference_usd_per_year": 663.4222438335419,
+      "unscaled_constraint_violation": 1.0244548320770264e-8,
+      "classification": "reproduced"
+    },
+    {
+      "region": "EF-2",
+      "termination": "no_accepted_solution",
+      "ma27_last_observed_iteration": 108,
+      "ma57_last_observed_iteration": 58,
+      "classification": "not_reproduced_initialization_scaling_failure",
+      "assessment": "Both exact-path solvers became nonproductive. The archived-checkpoint control converges to a nearby but materially different stationary point."
+    },
+    {
+      "region": "EF-3",
+      "termination": "optimal",
+      "iterations": 19,
+      "ipopt_seconds": 381.702,
+      "msp_usd_per_mj": 0.011193766665847404,
+      "msp_difference_from_migrated_csv": 8.343841242930417e-12,
+      "tac_difference_usd_per_year": 437.217021048069,
+      "unscaled_constraint_violation": 3.5762786865234375e-7,
+      "classification": "reproduced"
+    },
+    {
+      "region": "EF-4",
+      "termination": "optimal",
+      "iterations": 19,
+      "ipopt_seconds": 282.333,
+      "msp_usd_per_mj": 0.011210872207352845,
+      "msp_difference_from_migrated_csv": 2.7042569572532926e-12,
+      "tac_difference_usd_per_year": 435.9089366495609,
+      "unscaled_constraint_violation": 1.1920928955078125e-7,
+      "classification": "reproduced"
+    },
+    {
+      "region": "EF-5",
+      "termination": "optimal",
+      "iterations": 20,
+      "ipopt_seconds": 299.86,
+      "msp_usd_per_mj": 0.011231840274749655,
+      "msp_difference_from_migrated_csv": 8.821086222576824e-13,
+      "tac_difference_usd_per_year": 436.0794190764427,
+      "unscaled_constraint_violation": 2.384185791015625e-7,
+      "classification": "reproduced"
+    },
+    {
+      "region": "EF-6",
+      "termination": "optimal",
+      "iterations": 18,
+      "ipopt_seconds": 284.16,
+      "msp_usd_per_mj": 0.011165093699215752,
+      "msp_difference_from_migrated_csv": -3.5902010531163597e-13,
+      "tac_difference_usd_per_year": -262.69952645897865,
+      "unscaled_constraint_violation": 1.9431114196777344e-5,
+      "classification": "reproduced"
+    },
+    {
+      "region": "EF-7",
+      "termination": "optimal",
+      "iterations": 18,
+      "ipopt_seconds": 276.768,
+      "msp_usd_per_mj": 0.011170384663306322,
+      "msp_difference_from_migrated_csv": 1.069198549141781e-11,
+      "tac_difference_usd_per_year": -243.3802661895752,
+      "unscaled_constraint_violation": 1.1920928955078125e-7,
+      "classification": "reproduced_with_published_figure_snapshot_drift"
+    },
+    {
+      "region": "EF-8",
+      "termination": "optimal",
+      "iterations": 40,
+      "ipopt_seconds": 711.692,
+      "msp_usd_per_mj": 0.011179219881885456,
+      "msp_difference_from_migrated_csv": -3.962528484845879e-6,
+      "tac_difference_usd_per_year": -124481.93271121383,
+      "classification": "alternate_lower_local_optimum"
+    },
+    {
+      "region": "EF-9",
+      "termination": "optimal",
+      "iterations": 19,
+      "ipopt_seconds": 316.323,
+      "msp_usd_per_mj": 0.011150975104824436,
+      "msp_difference_from_migrated_csv": -2.945673821183603e-9,
+      "tac_difference_usd_per_year": -505.79231306910515,
+      "unscaled_constraint_violation": 1.7881393432617188e-7,
+      "classification": "reproduced_with_small_solver_path_drift"
+    },
+    {
+      "region": "EF-10",
+      "termination": "optimal",
+      "iterations": 22,
+      "ipopt_seconds": 488.209,
+      "msp_usd_per_mj": 0.011131151591075477,
+      "msp_difference_from_migrated_csv": 6.510472629929487e-8,
+      "tac_difference_usd_per_year": 4354.236859738827,
+      "unscaled_constraint_violation": 5.781650543212891e-6,
+      "classification": "small_solver_path_discrepancy"
+    },
+    {
+      "region": "EF-11",
+      "termination": "no_accepted_solution",
+      "ma27_last_observed_iteration": 56,
+      "ma57_last_observed_iteration": 65,
+      "classification": "not_reproduced_initialization_scaling_failure",
+      "assessment": "MA27 and MA57 both became nonproductive after reaching a nearly feasible point; the archived checkpoint is feasible but moves to another local solution when reoptimized."
+    },
+    {
+      "region": "EF-12",
+      "termination": "optimal",
+      "iterations": 20,
+      "ipopt_seconds": 444.25,
+      "msp_usd_per_mj": 0.011287624088547502,
+      "msp_difference_from_migrated_csv": 1.6621946874462168e-13,
+      "tac_difference_usd_per_year": 293.86628741025925,
+      "unscaled_constraint_violation": 1.7881393432617188e-7,
+      "classification": "reproduced"
+    }
+  ],
+  "figure_audit": {
+    "common_figure_6_classification": "EMISSIONS-NORMALIZATION-001",
+    "tightly_reproduced_detailed_states": [
+      "EF-Basin",
+      "EF-1",
+      "EF-3",
+      "EF-4",
+      "EF-5",
+      "EF-6",
+      "EF-7",
+      "EF-12"
+    ],
+    "tight_state_limits": {
+      "maximum_material_stream_table_relative_difference": 3.07143996166517e-7,
+      "maximum_hot_composite_curve_difference_gj_per_hour": 0.0013358955414446427,
+      "maximum_cold_composite_curve_difference_gj_per_hour": 0.001595910242869536
+    },
+    "exceptions": [
+      {
+        "region": "EF-7",
+        "figure_7_fresh_mw": 651.8115651765555,
+        "figure_7_paper_label_mw": 653.0,
+        "classification": "PUBLISHED-SNAPSHOT-DRIFT-001"
+      },
+      {
+        "region": "EF-8",
+        "figure_7_fresh_mw": 671.198786949758,
+        "maximum_material_stream_table_relative_difference": 0.020880084267749146,
+        "maximum_hot_composite_curve_difference_gj_per_hour": 64.25161062181337,
+        "classification": "alternate_lower_local_optimum"
+      },
+      {
+        "region": "EF-9",
+        "figure_7_fresh_mw": 654.9499546347072,
+        "maximum_material_stream_table_relative_difference": 4.263383838363902e-5,
+        "maximum_hot_composite_curve_difference_gj_per_hour": 0.19486915613930478,
+        "classification": "small_solver_path_drift"
+      },
+      {
+        "region": "EF-10",
+        "figure_7_fresh_mw": 651.7737342562416,
+        "figure_7_paper_label_mw": 651.0,
+        "maximum_material_stream_table_relative_difference": 0.0005540569723983698,
+        "maximum_hot_composite_curve_difference_gj_per_hour": 2.4951052508282032,
+        "classification": "unclassified_fresh_solution_difference"
+      }
+    ]
+  },
+  "checkpoint_controls": [
+    {
+      "region": "EF-2",
+      "termination": "optimal",
+      "iterations": 17,
+      "ipopt_seconds": 247.607,
+      "msp_difference_from_migrated_csv": -1.8223407781056689e-6,
+      "tac_difference_usd_per_year": 9579.39728948474,
+      "unscaled_constraint_violation": 8.219480514526367e-5,
+      "maximum_material_stream_table_relative_difference": 0.009122494707486101,
+      "maximum_hot_composite_curve_difference_gj_per_hour": 36.393940883470236,
+      "assessment": "Nearby stationary point; not an exact-path reproduction."
+    },
+    {
+      "region": "EF-8",
+      "termination": "interrupted_by_operator",
+      "last_observed_iteration": 42,
+      "assessment": "Archived state is nearly feasible and nearly stationary but stalls at dual residual about 2.65e-4 with severe line-search cutting."
+    },
+    {
+      "region": "EF-10",
+      "termination": "optimal",
+      "iterations": 15,
+      "ipopt_seconds": 227.915,
+      "msp_difference_from_migrated_csv": 5.649119735481878e-6,
+      "tac_difference_usd_per_year": 18903.695221066475,
+      "maximum_material_stream_table_relative_difference": 0.0817224478397003,
+      "maximum_hot_composite_curve_difference_gj_per_hour": 26.611804303433075,
+      "assessment": "Materially different stationary point; worse detailed reproduction than the exact path."
+    },
+    {
+      "region": "EF-11",
+      "termination": "optimal",
+      "iterations": 14,
+      "ipopt_seconds": 314.543,
+      "msp_difference_from_migrated_csv": 1.877563802488158e-6,
+      "tac_difference_usd_per_year": 68037.44724151492,
+      "maximum_material_stream_table_relative_difference": 0.01735438911371174,
+      "maximum_hot_composite_curve_difference_gj_per_hour": 48.42515893285116,
+      "assessment": "Feasible archived state moves to a materially different stationary point."
+    }
+  ],
+  "ef_11_state_diagnostics": {
+    "exact_path_constraints_above_1e-5": 9,
+    "largest_exact_path_residual": {
+      "constraint": "fs.min_sell_price_constraint",
+      "absolute_residual": 11869266.341258675
+    },
+    "second_exact_path_residual": {
+      "constraint": "fs.emissions_total_constraint",
+      "absolute_residual": 243.30017418084026
+    },
+    "archived_checkpoint_constraints_above_1e-5": 0,
+    "unscaled_free_variables_in_both_states": 141,
+    "unscaled_constraints_in_both_states": 1340,
+    "assessment": "The region substitution intentionally invalidates feed, costing, and emissions equations, while widespread missing scaling makes recovery and local stationarity solver-sensitive."
+  },
+  "assessment": "Nine of thirteen M5 regional cases reproduce the archived scalar solution closely on the exact notebook path. EF-8 reaches a lower alternate local optimum; EF-10 has a smaller solver-path discrepancy; EF-2 and EF-11 do not yield accepted exact-path solutions under either tested HSL solver. Figure 6 retains the separately classified historical emissions-normalization discrepancy."
+}

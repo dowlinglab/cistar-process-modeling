@@ -100,6 +100,16 @@ The comparison reports numerical table differences separately from unit-label
 text differences because the historical IDAES table API serializes unit objects
 differently from the labels already stored in the workbook.
 
+The curated regional evidence is in
+`runs/2026-09-12-candidate-a1-m5-regional-ma27.json`. Nine of the thirteen
+EF-Basin/EF-1-through-EF-12 cases closely reproduce the archived scalar state on
+the exact notebook path. EF-8 reaches a lower alternate local optimum, EF-10
+has a smaller solver-path discrepancy, and EF-2 and EF-11 do not yield accepted
+exact-path solutions with either MA27 or MA57. Checkpoint restarts are recorded
+as controls and are not counted as reproductions. The record also preserves the
+maximum detailed stream-table and composite-curve differences so matching a
+single rounded figure label cannot mask a different stationary point.
+
 The default `postprocessed` snapshot uses the root-level CSV files created by
 commit `957e363`, which recalculated TAC and MSP using cooling water above 303 K
 and refrigerated water from 288-303 K. The `migrated` snapshot uses the CSV files
