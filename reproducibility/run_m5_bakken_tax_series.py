@@ -27,7 +27,7 @@ from scipy import sparse
 from idaes.core.util import model_serializer as ms
 from idaes.core.util.model_statistics import degrees_of_freedom
 from idaes.core.util.scaling import get_jacobian
-from pyomo.environ import Constraint, SolverFactory, Suffix, value
+from pyomo.environ import Constraint, SolverFactory, Suffix, Var, value
 try:
     from pyomo.repn.util import FileDeterminism
 except ImportError:  # Pyomo 6.4 keeps this enum in the NL writer module
@@ -397,6 +397,122 @@ def _load_column_order(model: Any, path: Path) -> tuple[list[Any], str]:
     return components, digest
 
 
+def _capture_named_state(
+    model: Any,
+    output: Path,
+    *,
+    stage: str,
+    tax_rate: float,
+) -> dict[str, Any]:
+    """Write a name-aligned snapshot of every model variable."""
+    variables = []
+    missing_values = 0
+    for variable in model.component_data_objects(
+        Var, active=None, descend_into=True, sort=True
+    ):
+        variable_value = value(variable, exception=False)
+        if variable_value is None:
+            missing_values += 1
+        variables.append(
+            {
+                "name": variable.name,
+                "value": variable_value,
+                "fixed": bool(variable.fixed),
+                "lower_bound": value(variable.lb, exception=False),
+                "upper_bound": value(variable.ub, exception=False),
+            }
+        )
+    payload = {
+        "schema_version": 1,
+        "experiment_id": "B-M5-BAKKEN-NAMED-STATE-SNAPSHOT-001",
+        "stage": stage,
+        "co2_tax_usd_per_kg": tax_rate,
+        "environment": {
+            "idaes": idaes.__version__,
+            "pyomo": pyomo.__version__,
+            "python": sys.version,
+        },
+        "variable_count": len(variables),
+        "missing_value_count": missing_values,
+        "variables": variables,
+    }
+    _write_report(payload, output)
+    contents = output.read_bytes()
+    return {
+        "path": str(output.resolve()),
+        "bytes": len(contents),
+        "sha256": hashlib.sha256(contents).hexdigest(),
+        "variable_count": len(variables),
+        "missing_value_count": missing_values,
+    }
+
+
+def _tax_path_token(tax_rate: float) -> str:
+    return format(tax_rate, ".12g").replace("-", "m").replace("+", "p")
+
+
+def _regularize_pseudo_zero_inlet_phases(
+    model: Any,
+    threshold: float = 1e-6,
+) -> dict[str, Any]:
+    """Eliminate ill-conditioned composition equations for structural zero phases."""
+    targets = (
+        ("H105.inlet", model.fs.H105.control_volume.properties_in[0.0], "Liq"),
+        ("H106.inlet", model.fs.H106.control_volume.properties_in[0.0], "Vap"),
+        ("T103.inlet", model.fs.T103.properties_in[0.0], "Liq"),
+        ("T104.inlet", model.fs.T104.properties_in[0.0], "Liq"),
+    )
+    details = []
+    for label, state, phase in targets:
+        components = [
+            component
+            for candidate_phase, component in state.phase_component_set
+            if candidate_phase == phase
+        ]
+        flows = [
+            max(0.0, float(value(state.flow_mol_phase_comp[phase, component])))
+            for component in components
+        ]
+        total = sum(flows)
+        if total >= threshold:
+            raise RuntimeError(
+                f"{label} {phase} flow {total} is not below {threshold}; "
+                "refusing pseudo-zero-phase regularization."
+            )
+        fractions = (
+            [flow / total for flow in flows]
+            if total > 0.0
+            else [1.0 / len(components)] * len(components)
+        )
+        deactivated = 0
+        for component, fraction in zip(components, fractions):
+            constraint = state.mole_frac_phase_comp_eq[phase, component]
+            if constraint.active:
+                constraint.deactivate()
+                deactivated += 1
+            state.mole_frac_phase_comp[phase, component].fix(fraction)
+        details.append(
+            {
+                "state": label,
+                "phase": phase,
+                "component_count": len(components),
+                "starting_total_phase_flow_mol_per_s": total,
+                "constraints_deactivated": deactivated,
+                "compositions_fixed": len(components),
+                "fixed_fraction_sum": sum(fractions),
+            }
+        )
+    return {
+        "threshold_mol_per_s": threshold,
+        "states_regularized": len(details),
+        "constraints_deactivated": sum(
+            item["constraints_deactivated"] for item in details
+        ),
+        "compositions_fixed": sum(item["compositions_fixed"] for item in details),
+        "details": details,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--ipopt", type=Path, required=True)
@@ -412,6 +528,15 @@ def main() -> int:
         ),
     )
     parser.add_argument(
+        "--regularize-pseudo-zero-inlet-phases",
+        action="store_true",
+        help=(
+            "Fix analytically normalized compositions and deactivate their "
+            "ill-conditioned normalization equations for four structurally "
+            "absent inlet phases (H105 Liq, H106 Vap, T103 Liq, T104 Liq)."
+        ),
+    )
+    parser.add_argument(
         "--tax-rates",
         type=float,
         nargs="+",
@@ -419,6 +544,22 @@ def main() -> int:
         metavar="USD_PER_KG",
     )
     parser.add_argument("--max-iter", type=int, default=100)
+    parser.add_argument(
+        "--acceptable-tol",
+        type=float,
+        help=(
+            "Opt in to IPOPT's acceptable-termination criterion at this KKT "
+            "tolerance. The strict tol remains 1e-6. Intended only for "
+            "diagnosing paths that cross an accurate iterate before "
+            "restoration failure."
+        ),
+    )
+    parser.add_argument(
+        "--acceptable-iter",
+        type=int,
+        default=1,
+        help="Consecutive acceptable iterates required when --acceptable-tol is set.",
+    )
     parser.add_argument(
         "--nlp-scaling-method",
         choices=("gradient-based", "user-scaling", "none"),
@@ -493,7 +634,24 @@ def main() -> int:
         ),
     )
     parser.add_argument("--tee", action="store_true")
+    parser.add_argument(
+        "--continue-after-failure",
+        action="store_true",
+        help=(
+            "Continue a tax sequence after a non-optimal solver termination. "
+            "By default the runner stops so a failed state is not used to "
+            "initialize later continuation points."
+        ),
+    )
     parser.add_argument("--output", type=Path)
+    parser.add_argument(
+        "--state-snapshot-dir",
+        type=Path,
+        help=(
+            "Write complete named-variable snapshots immediately before and "
+            "after each solve. Intended for detailed state-drift diagnostics."
+        ),
+    )
     args = parser.parse_args()
     if (
         args.preserve_inherited_inequality_scaling
@@ -520,6 +678,18 @@ def main() -> int:
             "ipopt": _solver_version(ipopt, solver_environment),
             "linear_solver": args.linear_solver,
             "ma57_automatic_scaling": args.ma57_automatic_scaling,
+            "acceptable_tol": args.acceptable_tol,
+            "acceptable_iter": (
+                args.acceptable_iter if args.acceptable_tol is not None else None
+            ),
+            "acceptable_constr_viol_tol": (
+                1e-6 if args.acceptable_tol is not None else None
+            ),
+            "acceptable_dual_inf_tol": args.acceptable_tol,
+            "acceptable_compl_inf_tol": args.acceptable_tol,
+            "regularize_pseudo_zero_inlet_phases": (
+                args.regularize_pseudo_zero_inlet_phases
+            ),
             "nlp_scaling_method": args.nlp_scaling_method or "ipopt-default",
             "modern_autoscale": args.modern_autoscale,
             "active_nlp_autoscale": args.active_nlp_autoscale,
@@ -532,6 +702,7 @@ def main() -> int:
                 else None
             ),
             "solver_io": args.solver_io,
+            "continue_after_failure": args.continue_after_failure,
             "file_determinism": args.file_determinism,
             "column_order_from_symbol_map": (
                 str(args.column_order_from_symbol_map.resolve())
@@ -575,6 +746,14 @@ def main() -> int:
         unfix_DOFs_pre_optimization(model)
         ms.from_json(model, fname=str(checkpoint))
         report["archived_initial_optimum"] = checkpoint.name
+    pseudo_zero_phase_regularization = None
+    if args.regularize_pseudo_zero_inlet_phases:
+        pseudo_zero_phase_regularization = _regularize_pseudo_zero_inlet_phases(
+            model
+        )
+        report["pseudo_zero_phase_regularization"] = (
+            pseudo_zero_phase_regularization
+        )
     report["build_seconds"] = time.time() - started
     report["status"] = "running"
     report["total_wall_seconds"] = time.time() - started
@@ -592,6 +771,17 @@ def main() -> int:
                     variable.fix()
         initial_dof = degrees_of_freedom(model)
         starting_results = _collect_results(model)
+        state_snapshots = None
+        if args.state_snapshot_dir is not None:
+            token = _tax_path_token(tax_rate)
+            state_snapshots = {
+                "start": _capture_named_state(
+                    model,
+                    args.state_snapshot_dir / f"tax-{token}-start.json",
+                    stage="solver-start",
+                    tax_rate=tax_rate,
+                )
+            }
         archived = archived_rows.get(tax_rate * 1000)
         starting_comparison = None
         if archived is not None:
@@ -625,6 +815,16 @@ def main() -> int:
             solver.options["nlp_scaling_method"] = args.nlp_scaling_method
         if args.ma57_automatic_scaling:
             solver.options["ma57_automatic_scaling"] = "yes"
+        if args.acceptable_tol is not None:
+            solver.options["acceptable_tol"] = args.acceptable_tol
+            solver.options["acceptable_iter"] = args.acceptable_iter
+            # IPOPT's aggregate acceptable_tol uses scaled quantities, while
+            # the component thresholds otherwise have very loose defaults.
+            # Bind them explicitly so an "acceptable" diagnostic cannot hide
+            # a large unscaled residual or dual infeasibility.
+            solver.options["acceptable_constr_viol_tol"] = 1e-6
+            solver.options["acceptable_dual_inf_tol"] = args.acceptable_tol
+            solver.options["acceptable_compl_inf_tol"] = args.acceptable_tol
         determinism = {
             "ordered": FileDeterminism.ORDERED,
             "sort-indices": FileDeterminism.SORT_INDICES,
@@ -642,6 +842,13 @@ def main() -> int:
         except ValueError as err:
             load_error = str(err)
         fresh = _collect_results(model)
+        if state_snapshots is not None:
+            state_snapshots["final"] = _capture_named_state(
+                model,
+                args.state_snapshot_dir / f"tax-{token}-final.json",
+                stage="solver-final",
+                tax_rate=tax_rate,
+            )
         comparison = None
         if archived is not None:
             comparison = {
@@ -660,6 +867,10 @@ def main() -> int:
                 "solver_message": str(solve_result.solver.message),
                 "solution_load_error": load_error,
                 "active_nlp_scaling": active_nlp_scaling,
+                "pseudo_zero_phase_regularization": (
+                    pseudo_zero_phase_regularization
+                ),
+                "state_snapshots": state_snapshots,
                 "wall_seconds": time.time() - case_started,
                 "results_in_migrated_csv_units": fresh,
                 "difference_from_migrated_csv": comparison,
@@ -668,6 +879,12 @@ def main() -> int:
         fix_DOFs_post_optimization(model)
         report["total_wall_seconds"] = time.time() - started
         _write_report(report, args.output)
+        if (
+            str(solve_result.solver.termination_condition) != "optimal"
+            and not args.continue_after_failure
+        ):
+            report["terminated_early_after_solver_failure"] = True
+            break
 
     report["total_wall_seconds"] = time.time() - started
     report["status"] = "complete"

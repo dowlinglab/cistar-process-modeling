@@ -273,6 +273,21 @@ failing MA27 trace, so writer selection is not a remedy for this transition.
 This is a partial modern reproduction: checkpoint state and linear-system
 regularization remain consequential even after column order is pinned.
 
+Complete named-state and pseudo-zero-phase follow-up is recorded in
+`B-M5-BAKKEN-STATE-DRIFT-PSEUDO-ZERO-REGULARIZATION-001`. Restricting the
+checkpoint comparison to the 5,555 active NL variables isolates 66 dominant
+differences in four structurally absent inlet phases. Their component flows are
+near `1e-8` mol/s, so the associated composition-normalization equations are
+too weak to prevent large composition drift at the global feasibility
+tolerance. An opt-in guarded regularization removes those 66 equations and
+variables, but a direct USD 1/tonne solve then converges to the same incorrect
+low-temperature local optimum. Even a USD 0.02/tonne step crosses a nearly
+feasible, nearly stationary iterate before restoration failure. Explicitly
+bounded acceptable termination retains the first two small continuation
+points but fails by USD 0.10/tonne; it is diagnostic evidence, not the Phase B
+reproduction policy. The runner now stops a continuation after a failed solve
+by default so later cases cannot inherit an invalid state.
+
 ## Known provenance findings
 
 The published process/downstream emissions in Tables S4-S6 and Figures 3 and 6

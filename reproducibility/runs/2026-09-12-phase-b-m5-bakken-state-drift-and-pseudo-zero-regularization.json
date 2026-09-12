@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "experiment_id": "B-M5-BAKKEN-STATE-DRIFT-PSEUDO-ZERO-REGULARIZATION-001",
+  "purpose": "Compare complete named states after the modern tax-zero solve, isolate numerically weak pseudo-zero phases, and test whether removing those degrees of numerical freedom restores the published M5/Bakken carbon-tax continuation.",
+  "common_case": {
+    "environment": "IDAES 2.12.0 / Pyomo 6.10.1 / IPOPT 3.14.19",
+    "model_code": 5,
+    "region": "Bakken",
+    "free_design_variables": 8,
+    "linear_solver": "ma27",
+    "max_iterations": 100,
+    "file_determinism": "sort-symbols",
+    "historical_column_order_sha256": "ffbb0f542b183207539008a4c27a8e28ad6a0d4c61f80f002ca01f55e58a611c",
+    "nlp_scaling_method": "ipopt-default"
+  },
+  "named_state_comparison": {
+    "reference": "archived tax-zero optimum reconstructed in the modern model",
+    "candidate": "fresh modern tax-zero optimum with exact historical NL column order",
+    "all_model_variables_per_snapshot": 7967,
+    "active_nl_variables_selected": 5555,
+    "active_component_sets_identical": true,
+    "different_active_values": 5494,
+    "exactly_equal_active_values": 61,
+    "scale_aware_difference_counts": {
+      "greater_than_1e-12": 5230,
+      "greater_than_1e-9": 4680,
+      "greater_than_1e-6": 1420,
+      "greater_than_1e-3": 68,
+      "greater_than_1e-1": 66
+    },
+    "material_difference_families": [
+      {"state": "H105.inlet", "phase": "Liq", "mole_fraction_variables": 16},
+      {"state": "H106.inlet", "phase": "Vap", "mole_fraction_variables": 18},
+      {"state": "T103.inlet", "phase": "Liq", "mole_fraction_variables": 16},
+      {"state": "T104.inlet", "phase": "Liq", "mole_fraction_variables": 16},
+      {"state": "H106.outlet", "phase": "mixed", "log_mole_fraction_variables": 2}
+    ],
+    "largest_absolute_difference": {
+      "variable": "fs.R102.control_volume.enthalpy_flow_dx[0.0,0.05,Vap]",
+      "archived_value": -44467914.588677324,
+      "fresh_value": -44467752.89157589,
+      "absolute_difference": 161.69710143655539,
+      "scale_aware_difference": 3.6362645501196415e-6
+    },
+    "interpretation": "The initial all-variable comparison was confounded by inactive variables and serializer fixed-status differences. Restricting by the exported active NL map leaves 68 material differences. Sixty-six are compositions in four pseudo-zero phases whose component flows are each initialized near 1e-8 mol/s. Their normalization equations therefore have coefficients near 1e-7, allowing compositions to drift from normalized archived fractions toward approximately 0.998 without exceeding the global feasibility tolerance. This is a real degeneracy, but the remaining active state also contains many small differences, especially in R102."
+  },
+  "regularization": {
+    "method": "For the four explicitly guarded pseudo-zero inlet phases only, verify total phase flow below 1e-6 mol/s, fix phase compositions to normalized starting component flows, and deactivate the corresponding flow-normalization equations.",
+    "states_regularized": 4,
+    "compositions_fixed": 66,
+    "constraints_deactivated": 66,
+    "nlp_before": {"variables": 5555, "equalities": 5547, "equality_jacobian_nonzeros": 34098, "lagrangian_hessian_nonzeros": 26211},
+    "nlp_after": {"variables": 5489, "equalities": 5481, "equality_jacobian_nonzeros": 32906, "lagrangian_hessian_nonzeros": 24744},
+    "scope": "Opt-in diagnostic only; it is not enabled by the default reproduction command."
+  },
+  "experiments": [
+    {
+      "path": "archived USD 0.01/tonne optimum directly to USD 1/tonne with pseudo-zero regularization",
+      "strict_tolerance": 1e-6,
+      "termination_condition": "optimal",
+      "iterations": 60,
+      "msp_usd_per_mj": 0.009222494296338502,
+      "msp_difference_from_migrated_csv_usd_per_mj": -0.0011888266967565,
+      "r102_temperature_K": 525.3491556182584,
+      "r102_temperature_difference_from_migrated_csv_K": -125.1928443817416,
+      "classification": "Accepted alternate local optimum; removing the pseudo-zero degeneracy does not recover the publication branch."
+    },
+    {
+      "path": "archived USD 0.01/tonne optimum to USD 0.02/tonne with pseudo-zero regularization",
+      "strict_tolerance": 1e-6,
+      "termination_condition": "maxIterations",
+      "iterations": 100,
+      "best_transient_iteration": {"iteration": 10, "objective_usd_per_mj": 0.010390423392656796, "unscaled_constraint_violation": 8.344650268554688e-7, "dual_infeasibility": 0.0020418438527853235},
+      "final_unscaled_constraint_violation": 423610.19348967826,
+      "final_dual_infeasibility": 1267.441270913517,
+      "classification": "Even a twofold tax step crosses a high-quality iterate and then leaves the basin during strict convergence; step size alone is not the root cause."
+    },
+    {
+      "path": "same USD 0.02/tonne step with bounded acceptable termination",
+      "strict_tolerance": 1e-6,
+      "acceptable_tolerance": 0.01,
+      "acceptable_constraint_violation_tolerance": 1e-6,
+      "acceptable_dual_infeasibility_tolerance": 0.01,
+      "acceptable_complementarity_tolerance": 0.01,
+      "termination_condition": "optimal",
+      "solver_message": "Solved To Acceptable Level",
+      "iterations": 10,
+      "unscaled_constraint_violation": 8.344650268554688e-7,
+      "dual_infeasibility": 0.0020418438527853235,
+      "complementarity": 0.0007230267156811161,
+      "msp_usd_per_mj": 0.010390423392656796,
+      "r102_temperature_K": 650.5444942520992,
+      "classification": "Numerically bounded engineering point, not a strict reproduction result. An earlier screen that set only IPOPT acceptable_tol was rejected because IPOPT accepted a scaled aggregate error while unscaled dual infeasibility remained 36.3."
+    },
+    {
+      "path": "bounded geometric continuation from USD 0.02 to 0.05/tonne",
+      "termination_condition": "optimal",
+      "solver_message": "Solved To Acceptable Level",
+      "iterations": 40,
+      "unscaled_constraint_violation": 3.576278686523438e-7,
+      "dual_infeasibility": 0.00013161147063459787,
+      "complementarity": 5.2180359490186124e-6,
+      "msp_usd_per_mj": 0.010390114012238284,
+      "r102_temperature_K": 650.5155173979898,
+      "classification": "Second bounded point remained in the intended basin after restoration."
+    },
+    {
+      "path": "bounded geometric continuation from USD 0.05 to 0.10/tonne",
+      "termination_condition": "maxIterations",
+      "iterations": 100,
+      "final_unscaled_constraint_violation": 78108.38494819403,
+      "final_dual_infeasibility": 1647.9191025482505,
+      "classification": "Failed and left the basin; the remaining requested continuation points were intentionally not run from the invalid state."
+    }
+  ],
+  "commands": {
+    "active_state_comparison": "conda run --no-capture-output -n cistar-idaes-2.12 python reproducibility/compare_named_states.py ARCHIVED_STATE.json FRESH_STATE.json --active-variable-map CANDIDATE_A1_SYMBOL_MAP.json --output COMPARISON.json",
+    "strict_small_step": "conda run --no-capture-output -n cistar-idaes-2.12 python reproducibility/run_m5_bakken_tax_series.py --ipopt IPOPT --linear-solver ma27 --initial-optimal-tax 0.00001 --tax-rates 0.00002 --max-iter 100 --file-determinism sort-symbols --column-order-from-symbol-map CANDIDATE_A1_SYMBOL_MAP.json --regularize-pseudo-zero-inlet-phases --output RESULT.json",
+    "bounded_screen": "conda run --no-capture-output -n cistar-idaes-2.12 python reproducibility/run_m5_bakken_tax_series.py --ipopt IPOPT --linear-solver ma27 --initial-optimal-tax 0.00001 --tax-rates 0.00002 0.00005 0.0001 --max-iter 100 --file-determinism sort-symbols --column-order-from-symbol-map CANDIDATE_A1_SYMBOL_MAP.json --regularize-pseudo-zero-inlet-phases --acceptable-tol 0.01 --acceptable-iter 1 --output RESULT.json"
+  },
+  "conclusions": [
+    "Name-aligned active-state comparison identifies four structurally absent inlet phases as the dominant state drift after a fresh modern tax-zero solve.",
+    "Guarded elimination of the 66 weak normalization equations reduces a genuine degeneracy but does not by itself restore strict continuation convergence or prevent an alternate local optimum.",
+    "A much smaller tax increment still crosses a nearly feasible and nearly stationary point before restoration failure, rejecting large continuation step size as the sole cause.",
+    "Explicitly bounded acceptable termination can retain two early engineering points, but it fails at USD 0.10/tonne and is not accepted as the Phase B reproduction policy.",
+    "The remaining obstruction is strict, representation-robust KKT convergence in the residual active state, with R102 derivative/heat variables the largest absolute checkpoint differences."
+  ]
+}
