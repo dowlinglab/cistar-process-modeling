@@ -404,6 +404,14 @@ def main() -> int:
         "--linear-solver", choices=("ma27", "ma57"), default="ma27"
     )
     parser.add_argument(
+        "--ma57-automatic-scaling",
+        action="store_true",
+        help=(
+            "Enable MA57's internal automatic scaling (ICNTL(15)); valid only "
+            "with --linear-solver ma57."
+        ),
+    )
+    parser.add_argument(
         "--tax-rates",
         type=float,
         nargs="+",
@@ -495,6 +503,8 @@ def main() -> int:
             "--preserve-inherited-inequality-scaling requires "
             "--active-nlp-autoscale"
         )
+    if args.ma57_automatic_scaling and args.linear_solver != "ma57":
+        parser.error("--ma57-automatic-scaling requires --linear-solver ma57")
 
     started = time.time()
     ipopt = args.ipopt.resolve()
@@ -509,6 +519,7 @@ def main() -> int:
             "pyomo": pyomo.__version__,
             "ipopt": _solver_version(ipopt, solver_environment),
             "linear_solver": args.linear_solver,
+            "ma57_automatic_scaling": args.ma57_automatic_scaling,
             "nlp_scaling_method": args.nlp_scaling_method or "ipopt-default",
             "modern_autoscale": args.modern_autoscale,
             "active_nlp_autoscale": args.active_nlp_autoscale,
@@ -612,6 +623,8 @@ def main() -> int:
         )
         if args.nlp_scaling_method is not None:
             solver.options["nlp_scaling_method"] = args.nlp_scaling_method
+        if args.ma57_automatic_scaling:
+            solver.options["ma57_automatic_scaling"] = "yes"
         determinism = {
             "ordered": FileDeterminism.ORDERED,
             "sort-indices": FileDeterminism.SORT_INDICES,

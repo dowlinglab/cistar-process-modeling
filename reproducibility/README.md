@@ -260,6 +260,19 @@ failure, not merely correlated with it. The pinned sequence is a defensible
 cross-version reproduction control; representation-robust scaling remains the
 preferred long-term modernization outcome.
 
+The first tax-continuation screen is recorded in
+`B-M5-BAKKEN-HISTORICAL-COLUMN-TAX-CONTINUATIONS-001`. Continuing directly
+from the fresh modern tax-zero solution reaches an accepted but incorrect local
+optimum at USD 0.01/tonne, despite the tax-zero headline metrics matching the
+archive. Reloading the exact archived tax-zero checkpoint instead closely
+recovers USD 0.01/tonne. The next transition, to USD 1/tonne, fails from its
+exact preceding archived checkpoint under MA27, MA57, and MA57's internal
+automatic scaling. MA57 without internal scaling ends closest to feasibility
+(`2.32e-2`) but remains in restoration. The `nl_v1` writer reproduces the
+failing MA27 trace, so writer selection is not a remedy for this transition.
+This is a partial modern reproduction: checkpoint state and linear-system
+regularization remain consequential even after column order is pinned.
+
 ## Known provenance findings
 
 The published process/downstream emissions in Tables S4-S6 and Figures 3 and 6
