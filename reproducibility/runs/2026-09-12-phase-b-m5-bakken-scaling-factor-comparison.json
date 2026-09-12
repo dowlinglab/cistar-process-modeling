@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "experiment_id": "B-M5-BAKKEN-SCALING-FACTOR-COMPARISON-001",
+  "purpose": "Identify the factor-level cause of the different whole-model and active-NLP AutoScaler trajectories and correct the preliminary interpretation in B-M5-BAKKEN-ACTIVE-NLP-SCALING-SCREEN-001.",
+  "environment": {
+    "idaes": "2.12.0",
+    "pyomo": "6.10.1",
+    "ipopt": "3.14.19",
+    "linear_solver": "ma57"
+  },
+  "controls": [
+    {
+      "policy": "active-NLP rebuild",
+      "nlp_scaling_method": "user-scaling",
+      "max_iterations": 10,
+      "termination_condition": "maxIterations",
+      "iteration_10_scaled_dual_infeasibility": 28.422060463405483,
+      "iteration_10_scaled_constraint_violation": 1.2456091971433112,
+      "iteration_10_unscaled_constraint_violation": 94367.33316129446,
+      "conclusion": "Matching the whole-model control's IPOPT user-scaling setting does not recover its stable trajectory."
+    },
+    {
+      "policy": "active-NLP rebuild preserving inherited inequality factors",
+      "nlp_scaling_method": "user-scaling",
+      "preserved_inequalities": 71,
+      "max_iterations": 10,
+      "termination_condition": "maxIterations",
+      "iteration_10_scaled_dual_infeasibility": 0.23840194195508957,
+      "iteration_10_scaled_constraint_violation": 0.005358019608661018,
+      "iteration_10_unscaled_constraint_violation": 357.5841808319092,
+      "conclusion": "Preserving inequality factors improves the late residuals but still does not reproduce the whole-model trajectory."
+    }
+  ],
+  "name_aligned_factor_comparison": {
+    "reference": "whole-model IDAES AutoScaler",
+    "candidate": "active-NLP rebuild preserving inherited inequalities",
+    "variables": {
+      "count": 5555,
+      "missing_factors_reference": 0,
+      "missing_factors_candidate": 0,
+      "factors_differing_above_absolute_log10_ratio_1e-12": 0
+    },
+    "equalities": {
+      "count": 5547,
+      "missing_factors_reference": 0,
+      "missing_factors_candidate": 0,
+      "factors_differing_above_absolute_log10_ratio_1e-12": 5302,
+      "factors_differing_above_absolute_log10_ratio_1e-3": 5278,
+      "factors_differing_by_more_than_factor_10": 1974,
+      "maximum_absolute_log10_ratio": 14.694829701297227,
+      "largest_ratio_constraint": "fs.T101.properties_in[0.0].component_flow_balances[hexane]",
+      "largest_ratio_reference_factor": 1.1785113019775792e-6,
+      "largest_ratio_candidate_factor": 583664733.7017833
+    },
+    "inequalities": {
+      "count": 71,
+      "whole_model_missing_factors": 71,
+      "candidate_explicit_unit_factors": 71
+    }
+  },
+  "ordering_evidence": {
+    "full_jacobian_constraints": 5618,
+    "equalities": 5547,
+    "inequalities": 71,
+    "first_inequality_full_jacobian_row_zero_based": 26,
+    "first_inequality": "fs.heating_cost_constraint"
+  },
+  "minimal_reproducer": {
+    "row_order": [
+      "eq1: norm 1",
+      "ineq: norm 10",
+      "eq2: norm 100"
+    ],
+    "eq2_expected_factor_from_own_row": 0.01,
+    "eq2_observed_idaes_autoscaler_factor": 0.1,
+    "observed_factor_source": "preceding inequality row norm"
+  },
+  "source_level_cause": "IDAES 2.12 AutoScaler._con_by_norm obtains a full Jacobian, enumerates an equality-only constraint list, and uses each equality-list index directly as a full-Jacobian row index. Interspersed inequalities therefore shift the row norm assigned to subsequent equalities.",
+  "interpretation": [
+    "The stable whole-model AutoScaler trajectory depends on extensively misaligned equality scaling factors, not on a scientifically justified scaling policy.",
+    "The skipped non-exportable suffix warnings are not the direct trajectory switch, and preserving the 71 inequality factors is insufficient.",
+    "The preliminary statement in B-M5-BAKKEN-ACTIVE-NLP-SCALING-SCREEN-001 that the next comparison had narrowed only to inequalities and inherited factors is superseded by this factor-level result.",
+    "A corrected row-aligned scaling policy is numerically worse on this ill-conditioned model, so convergence cannot be claimed by relying on the accidental AutoScaler factor shift."
+  ]
+}

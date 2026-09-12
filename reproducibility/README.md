@@ -210,6 +210,19 @@ recommended scaling fix. The difference from the more stable whole-model
 AutoScaler control narrows the next comparison to how inequalities and
 inherited constraint factors are treated.
 
+The subsequent apples-to-apples and factor-level controls are recorded in
+`B-M5-BAKKEN-SCALING-FACTOR-COMPARISON-001` and supersede that preliminary
+narrowing. Matching IPOPT `user-scaling` and preserving all 71 inherited
+inequality factors still fail to reproduce the whole-model AutoScaler path.
+All 5,555 active variable factors match, but 5,302 of 5,547 equality factors
+differ between the policies, including 1,974 by more than a factor of ten. A
+three-constraint reproducer identifies an IDAES 2.12 row-index mismatch: the
+block-level AutoScaler enumerates equality constraints while indexing row norms
+from the full Jacobian, so an interspersed inequality shifts factors assigned
+to later equalities. The more stable whole-model trajectory therefore relies on
+accidentally misaligned equality factors and is diagnostic evidence, not a
+defensible modernization policy.
+
 ## Known provenance findings
 
 The published process/downstream emissions in Tables S4-S6 and Figures 3 and 6

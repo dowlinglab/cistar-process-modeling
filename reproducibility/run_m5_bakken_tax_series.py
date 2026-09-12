@@ -26,7 +26,7 @@ from scipy import sparse
 from idaes.core.util import model_serializer as ms
 from idaes.core.util.model_statistics import degrees_of_freedom
 from idaes.core.util.scaling import get_jacobian
-from pyomo.environ import SolverFactory, Suffix, value
+from pyomo.environ import Constraint, SolverFactory, Suffix, value
 
 from src.costing_function import add_costing, calculate_costs_for_objective
 from src.emissions_calculations import (
@@ -87,7 +87,11 @@ def _clear_scaling_suffixes(model: Any) -> dict[str, int]:
     return {"suffixes_cleared": suffixes, "entries_cleared": entries}
 
 
-def _apply_active_nlp_autoscaling(model: Any, norm: int) -> dict[str, int]:
+def _apply_active_nlp_autoscaling(
+    model: Any,
+    norm: int,
+    preserve_inherited_inequality_scaling: bool = False,
+) -> dict[str, int]:
     """Rebuild suffix scaling only for variables/constraints in the active NLP."""
     try:
         from idaes.core.scaling import AutoScaler
@@ -96,6 +100,19 @@ def _apply_active_nlp_autoscaling(model: Any, norm: int) -> dict[str, int]:
         raise RuntimeError(
             "Active-NLP autoscaling requires an IDAES release that exposes AutoScaler."
         ) from err
+
+    inherited_inequality_factors: dict[str, float] = {}
+    if preserve_inherited_inequality_scaling:
+        from idaes.core.scaling.util import get_scaling_factor
+
+        for constraint in model.component_data_objects(
+            Constraint, active=True, descend_into=True
+        ):
+            if not constraint.equality:
+                factor = get_scaling_factor(constraint)
+                inherited_inequality_factors[constraint.name] = (
+                    1.0 if factor is None else float(factor)
+                )
 
     cleared = _clear_scaling_suffixes(model)
     _, nlp = get_jacobian(model, scaled=False)
@@ -114,7 +131,14 @@ def _apply_active_nlp_autoscaling(model: Any, norm: int) -> dict[str, int]:
         sparse.linalg.norm(scaled_jacobian, ord=int(norm), axis=1)
     ).reshape(-1)
     for constraint, row_norm in zip(active_constraints, row_norms):
-        factor = 1.0 if row_norm <= scaler.config.zero_tolerance else 1.0 / row_norm
+        if constraint.name in inherited_inequality_factors:
+            factor = inherited_inequality_factors[constraint.name]
+        else:
+            factor = (
+                1.0
+                if row_norm <= scaler.config.zero_tolerance
+                else 1.0 / row_norm
+            )
         factor = min(
             scaler.config.max_constraint_scaling_factor,
             max(scaler.config.min_constraint_scaling_factor, factor),
@@ -124,6 +148,9 @@ def _apply_active_nlp_autoscaling(model: Any, norm: int) -> dict[str, int]:
         **cleared,
         "active_variables_scaled": len(active_variables),
         "active_constraints_scaled": len(active_constraints),
+        "inherited_inequality_factors_preserved": len(
+            inherited_inequality_factors
+        ),
     }
 
 
@@ -350,6 +377,14 @@ def main() -> int:
     )
     parser.add_argument("--autoscale-norm", type=int, default=2)
     parser.add_argument(
+        "--preserve-inherited-inequality-scaling",
+        action="store_true",
+        help=(
+            "With --active-nlp-autoscale, retain inherited factors for active "
+            "inequalities while rebuilding variable and equality factors."
+        ),
+    )
+    parser.add_argument(
         "--solver-io",
         choices=("nl", "nl_v1", "nl_v2"),
         default="nl",
@@ -367,6 +402,14 @@ def main() -> int:
     parser.add_argument("--tee", action="store_true")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
+    if (
+        args.preserve_inherited_inequality_scaling
+        and not args.active_nlp_autoscale
+    ):
+        parser.error(
+            "--preserve-inherited-inequality-scaling requires "
+            "--active-nlp-autoscale"
+        )
 
     started = time.time()
     ipopt = args.ipopt.resolve()
@@ -384,6 +427,9 @@ def main() -> int:
             "nlp_scaling_method": args.nlp_scaling_method or "ipopt-default",
             "modern_autoscale": args.modern_autoscale,
             "active_nlp_autoscale": args.active_nlp_autoscale,
+            "preserve_inherited_inequality_scaling": (
+                args.preserve_inherited_inequality_scaling
+            ),
             "autoscale_norm": (
                 args.autoscale_norm
                 if args.modern_autoscale or args.active_nlp_autoscale
@@ -438,7 +484,11 @@ def main() -> int:
         active_nlp_scaling = None
         if args.active_nlp_autoscale:
             active_nlp_scaling = _apply_active_nlp_autoscaling(
-                model, args.autoscale_norm
+                model,
+                args.autoscale_norm,
+                preserve_inherited_inequality_scaling=(
+                    args.preserve_inherited_inequality_scaling
+                ),
             )
         solver = SolverFactory(
             "ipopt", solver_io=args.solver_io, executable=str(ipopt)
