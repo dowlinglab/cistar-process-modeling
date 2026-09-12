@@ -247,6 +247,19 @@ isolates a real writer representation change capable of altering IPOPT's path,
 while the matching named equations and derivative fingerprints continue to
 rule against a changed mathematical model as the explanation.
 
+The causal follow-up is recorded in
+`B-M5-BAKKEN-HISTORICAL-COLUMN-ORDER-001`. The tax-series runner accepts a
+digest-verified `--column-order-from-symbol-map` diagnostic. When the modern
+writer is given Candidate A1's exported variable sequence, its emitted map
+matches all 5,555 historical column positions (and all rows already matched)
+while retaining the modern common-expression representation. The full modern
+eight-DOF tax-zero case then terminates optimally in 46 iterations and matches
+the migrated result to `1.1e-10` USD/MJ in MSP, `5.6e-4` K in R102 temperature,
+and 23 USD/year in TAC. This establishes column permutation as causal for this
+failure, not merely correlated with it. The pinned sequence is a defensible
+cross-version reproduction control; representation-robust scaling remains the
+preferred long-term modernization outcome.
+
 ## Known provenance findings
 
 The published process/downstream emissions in Tables S4-S6 and Figures 3 and 6

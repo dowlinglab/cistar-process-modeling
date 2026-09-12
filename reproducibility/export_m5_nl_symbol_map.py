@@ -24,6 +24,7 @@ from pyomo.opt import ProblemFormat
 from reproducibility.run_m5_bakken_tax_series import (
     FileDeterminism,
     _build_preoptimization_model,
+    _load_column_order,
     _write_report,
 )
 from src.unit_initialization import unfix_DOFs_pre_optimization
@@ -86,7 +87,11 @@ def _inspect_nl(path: Path, header_lines: int = 10) -> dict[str, Any]:
     }
 
 
-def export_symbol_map(nl_output: Path, determinism: str) -> dict[str, Any]:
+def export_symbol_map(
+    nl_output: Path,
+    determinism: str,
+    column_order_path: Path | None = None,
+) -> dict[str, Any]:
     model = _build_preoptimization_model(5, "Bakken", 0.0)
     unfix_DOFs_pre_optimization(model)
     option = {
@@ -95,15 +100,22 @@ def export_symbol_map(nl_output: Path, determinism: str) -> dict[str, Any]:
         "sort-symbols": FileDeterminism.SORT_SYMBOLS,
     }[determinism]
     nl_output.parent.mkdir(parents=True, exist_ok=True)
+    io_options = {
+        "file_determinism": option,
+        # The in-memory SymbolMap retains component objects without embedding
+        # their very long names on every NL expression line.
+        "symbolic_solver_labels": False,
+    }
+    requested_column_order_sha256 = None
+    if column_order_path is not None:
+        column_order, requested_column_order_sha256 = _load_column_order(
+            model, column_order_path
+        )
+        io_options["column_order"] = column_order
     filename, symbol_map_id = model.write(
         str(nl_output),
         format=ProblemFormat.nl,
-        io_options={
-            "file_determinism": option,
-            # The in-memory SymbolMap retains component objects without
-            # embedding their very long names on every NL expression line.
-            "symbolic_solver_labels": False,
-        },
+        io_options=io_options,
     )
     symbol_map = model.solutions.symbol_map[symbol_map_id]
     order = _ordered_symbol_names(symbol_map)
@@ -124,6 +136,12 @@ def export_symbol_map(nl_output: Path, determinism: str) -> dict[str, Any]:
             "free_design_variables": 8,
             "file_determinism": determinism,
             "symbolic_solver_labels": False,
+            "column_order_from_symbol_map": (
+                str(column_order_path.resolve())
+                if column_order_path is not None
+                else None
+            ),
+            "requested_column_order_sha256": requested_column_order_sha256,
         },
         "nl_file": _inspect_nl(nl_path),
         "ordering": {
@@ -146,8 +164,13 @@ def main() -> int:
         choices=("ordered", "sort-indices", "sort-symbols"),
         default="sort-symbols",
     )
+    parser.add_argument("--column-order-from-symbol-map", type=Path)
     arguments = parser.parse_args()
-    report = export_symbol_map(arguments.nl_output, arguments.file_determinism)
+    report = export_symbol_map(
+        arguments.nl_output,
+        arguments.file_determinism,
+        arguments.column_order_from_symbol_map,
+    )
     _write_report(report, arguments.output)
     print(
         json.dumps(

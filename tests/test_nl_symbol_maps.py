@@ -1,4 +1,5 @@
 import hashlib
+import json
 import sys
 import tempfile
 import unittest
@@ -15,6 +16,7 @@ from reproducibility.export_m5_nl_symbol_map import (  # noqa: E402
     _inspect_nl,
     _resolve_symbol_object,
 )
+from reproducibility.run_m5_bakken_tax_series import _load_column_order  # noqa: E402
 
 
 class _Named:
@@ -25,6 +27,14 @@ class _Named:
 class _SymbolMap:
     def __init__(self, mapping):
         self.bySymbol = mapping
+
+
+class _Model:
+    def __init__(self, mapping):
+        self.mapping = mapping
+
+    def find_component(self, name):
+        return self.mapping.get(name)
 
 
 class NlSymbolMapTests(unittest.TestCase):
@@ -55,6 +65,23 @@ class NlSymbolMapTests(unittest.TestCase):
         self.assertEqual(result["bytes"], len(content))
         self.assertEqual(result["sha256"], hashlib.sha256(content).hexdigest())
         self.assertEqual(result["header"], ["first", "second"])
+
+    def test_load_column_order_resolves_and_verifies_names(self):
+        names = ["model.x[1]", "model.x[0]"]
+        digest = hashlib.sha256("\n".join(names).encode("utf-8")).hexdigest()
+        first = _Named(names[0])
+        second = _Named(names[1])
+        payload = {
+            "ordering": {"variables": {"names": names, "sha256": digest}}
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "map.json"
+            path.write_text(json.dumps(payload))
+            components, actual_digest = _load_column_order(
+                _Model({names[0]: first, names[1]: second}), path
+            )
+        self.assertEqual(components, [first, second])
+        self.assertEqual(actual_digest, digest)
 
 
 if __name__ == "__main__":

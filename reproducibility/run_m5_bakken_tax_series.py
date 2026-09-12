@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import os
 import platform
@@ -367,6 +368,35 @@ def _write_report(report: dict[str, Any], output: Path | None) -> None:
     temporary.replace(output)
 
 
+def _load_column_order(model: Any, path: Path) -> tuple[list[Any], str]:
+    """Resolve a recorded NL variable sequence against a rebuilt model."""
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    try:
+        names = payload["ordering"]["variables"]["names"]
+        expected_digest = payload["ordering"]["variables"]["sha256"]
+    except (KeyError, TypeError) as err:
+        raise ValueError(f"Not an NL symbol-map record: {path}") from err
+    if not isinstance(names, list) or not all(isinstance(name, str) for name in names):
+        raise ValueError(f"Variable ordering must be a list of names: {path}")
+    digest = hashlib.sha256("\n".join(names).encode("utf-8")).hexdigest()
+    if digest != expected_digest:
+        raise ValueError(f"Variable-order digest does not match its names: {path}")
+    components = []
+    missing = []
+    for name in names:
+        component = model.find_component(name)
+        if component is None:
+            missing.append(name)
+        else:
+            components.append(component)
+    if missing:
+        preview = ", ".join(missing[:5])
+        raise ValueError(
+            f"Column-order map has {len(missing)} unresolved variables: {preview}"
+        )
+    return components, digest
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--ipopt", type=Path, required=True)
@@ -428,6 +458,15 @@ def main() -> int:
         ),
     )
     parser.add_argument(
+        "--column-order-from-symbol-map",
+        type=Path,
+        help=(
+            "Resolve and pass the variable sequence from an exported NL "
+            "symbol-map JSON as Pyomo's explicit column_order. This is a "
+            "cross-version diagnostic control, not a recommended default."
+        ),
+    )
+    parser.add_argument(
         "--initial-optimal-tax",
         type=float,
         metavar="USD_PER_KG",
@@ -483,6 +522,11 @@ def main() -> int:
             ),
             "solver_io": args.solver_io,
             "file_determinism": args.file_determinism,
+            "column_order_from_symbol_map": (
+                str(args.column_order_from_symbol_map.resolve())
+                if args.column_order_from_symbol_map is not None
+                else None
+            ),
         },
         "case": {"model_code": 5, "region": "Bakken"},
         "free_design_variables": (
@@ -501,6 +545,14 @@ def main() -> int:
     }
 
     model = _build_preoptimization_model()
+    column_order = None
+    if args.column_order_from_symbol_map is not None:
+        column_order, column_order_digest = _load_column_order(
+            model, args.column_order_from_symbol_map
+        )
+        report["environment"]["requested_column_order_sha256"] = (
+            column_order_digest
+        )
     if args.initial_optimal_tax is not None:
         checkpoint = _checkpoint(
             "CISTAR_optimal_solution_Bakken_C_tax_{}_M5_purge_0.01_"
@@ -565,11 +617,11 @@ def main() -> int:
             "sort-indices": FileDeterminism.SORT_INDICES,
             "sort-symbols": FileDeterminism.SORT_SYMBOLS,
         }[args.file_determinism]
+        writer_options = {"file_determinism": determinism}
+        if column_order is not None:
+            writer_options["column_order"] = column_order
         solve_result = solver.solve(
-            model,
-            tee=args.tee,
-            load_solutions=False,
-            file_determinism=determinism,
+            model, tee=args.tee, load_solutions=False, **writer_options
         )
         load_error = None
         try:

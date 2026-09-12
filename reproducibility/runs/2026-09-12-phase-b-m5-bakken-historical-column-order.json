@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "experiment_id": "B-M5-BAKKEN-HISTORICAL-COLUMN-ORDER-001",
+  "purpose": "Test whether replaying Candidate A1's actual variable-column sequence is sufficient to recover the full eight-DOF M5/Bakken tax-zero optimization under IDAES 2.12 and Pyomo 6.10.1.",
+  "case": {
+    "model_code": 5,
+    "region": "Bakken",
+    "co2_tax_usd_per_kg": 0.0,
+    "free_design_variables": 8,
+    "start": "historical unit/constrained/costed checkpoint chain",
+    "linear_solver": "ma27",
+    "ipopt": "3.14.19",
+    "max_iterations": 100,
+    "nlp_scaling_method": "ipopt-default",
+    "file_determinism": "sort-symbols",
+    "column_order_source": "Candidate A1 IDAES 2.0.0.dev3 / Pyomo 6.4.2 sort-symbols NL symbol-map export",
+    "requested_column_order_sha256": "ffbb0f542b183207539008a4c27a8e28ad6a0d4c61f80f002ca01f55e58a611c"
+  },
+  "modern_environment": {
+    "idaes": "2.12.0",
+    "pyomo": "6.10.1",
+    "python": "3.10.8",
+    "platform": "macOS-26.6.2-arm64-arm-64bit"
+  },
+  "emitted_symbol_map_comparison": {
+    "variables": {
+      "shared_components": 5555,
+      "same_position_count": 5555,
+      "longest_common_prefix": 5555,
+      "maximum_absolute_position_displacement": 0
+    },
+    "constraints": {
+      "shared_components": 5618,
+      "same_position_count": 5618,
+      "longest_common_prefix": 5618,
+      "maximum_absolute_position_displacement": 0
+    },
+    "objectives": {
+      "shared_components": 1,
+      "same_position_count": 1,
+      "longest_common_prefix": 1,
+      "maximum_absolute_position_displacement": 0
+    },
+    "historical_nl_bytes": 661047103,
+    "modern_nl_bytes": 166615339,
+    "modern_common_expressions_constraint": 548,
+    "modern_common_expressions_constraint_single_use": 7309,
+    "interpretation": "The explicit sequence reproduces every historical row and column position while retaining the modern writer's common-expression representation."
+  },
+  "solve": {
+    "termination_condition": "optimal",
+    "solver_status": "ok",
+    "iterations": 46,
+    "ipopt_seconds": 107.327,
+    "total_case_wall_seconds": 204.45578289031982,
+    "final_scaled_dual_infeasibility": 1.5409612449700429e-05,
+    "final_unscaled_constraint_violation": 7.486495604222206e-07,
+    "result": {
+      "msp_usd_per_mj": 0.010389145772176854,
+      "r102_temperature_K": 650.5414427403649,
+      "total_annualized_cost_usd_per_year": 217051809.56370017,
+      "product_lhv_mw": 868.1927754571466
+    },
+    "difference_from_migrated_csv": {
+      "msp_usd_per_mj": 1.0624541350867656e-10,
+      "r102_temperature_K": -0.0005572596351157699,
+      "total_annualized_cost_usd_per_year": -22.78629982471466,
+      "product_lhv_mw": -0.00022454285340245406
+    }
+  },
+  "conclusions": [
+    "Replaying the historical variable-column sequence is sufficient to recover an accepted full eight-DOF tax-zero solve under IDAES 2.12.",
+    "The modern result closely reproduces the migrated archived optimum on all recorded headline metrics.",
+    "Because modern common-expression grouping remains in place, expression compression is not the cause of the failed default modern trajectory in this control.",
+    "Column ordering is a causal numerical compatibility variable for this severely conditioned NLP, not merely a correlation inferred from high-level determinism settings.",
+    "The explicit ordering remains a diagnostic and reproducibility control. A representation-robust scaling and initialization strategy is still preferable to relying on one historical permutation."
+  ],
+  "next_action": "Use the verified historical sequence for a complete modern tax-series reproduction while continuing representation-robust scaling and initialization work."
+}
