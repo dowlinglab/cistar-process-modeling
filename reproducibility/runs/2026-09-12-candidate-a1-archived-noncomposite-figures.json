@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "experiment_id": "A1-ARCHIVED-NONCOMPOSITE-FIGURES-001",
+  "date": "2026-09-12",
+  "base_git_commit": "ff5b5cd",
+  "environment": {
+    "candidate": "A1 clean reconstruction",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "python": "3.10.8",
+    "idaes": "2.0.0.dev3",
+    "idaes_candidate_commit": "66935c80a5aafc3ffc9ab3d387e488cddd4f233b",
+    "pyomo": "6.4.2",
+    "matplotlib": "3.6.2"
+  },
+  "command": "python reproducibility/regenerate_archived_figures.py --output-dir /path/outside/repository/archived-figures --record /path/outside/repository/archived-figures.json",
+  "status": "complete_with_classified_published_snapshot_differences",
+  "coverage": ["F3", "F5", "F6", "F7", "F8", "FS1", "FS2", "FS5"],
+  "source": {
+    "archived_optimal_checkpoint_count": 17,
+    "csv_inputs": [
+      "optimal_data_wrt_c_tax_rates.csv",
+      "optimal_data_wrt_region.csv",
+      "data/NGL_fraction.csv",
+      "data/Shale_composition.csv"
+    ],
+    "hash_policy": "The external full record contains SHA-256 hashes for every checkpoint and CSV input."
+  },
+  "numeric_validation": {
+    "figure_s1_max_absolute_total_label_difference_mol_per_s": 0.04049618608078731,
+    "figure_s2_max_absolute_label_difference_mole_percent": 0.002252519320194324,
+    "figure_7_max_absolute_total_label_difference_mw": 1.1884339586107444,
+    "figure_7_labels_outside_rounding_tolerance": {
+      "EF-7": -1.1884339586107444,
+      "EF-10": 0.7669164839010136
+    },
+    "classified_issues": [
+      "EMISSIONS-NORMALIZATION-001",
+      "PUBLISHED-SNAPSHOT-DRIFT-001"
+    ]
+  },
+  "pdf_validation": {
+    "generated_count": 8,
+    "pypdf_result": "All outputs reopen as nonempty, single-page PDFs.",
+    "renderer": "Poppler pdftoppm at 100 dpi",
+    "visual_result": "All eight figures render without clipping or overlap. Representative comparisons recover the archived axes, series, labels, component ordering, legends, and scientific notation."
+  },
+  "output_policy": "Generated PDFs and the full numeric record were written outside the repository. Checked-in publication PDFs were not modified."
+}

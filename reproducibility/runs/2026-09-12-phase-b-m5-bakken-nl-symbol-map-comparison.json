@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "experiment_id": "B-M5-BAKKEN-NL-SYMBOL-MAP-COMPARISON-001",
+  "purpose": "Compare the actual symbol maps and structural headers emitted for the full eight-DOF M5/Bakken tax-zero NLP under the same sort-symbols request.",
+  "common_case": {
+    "model_code": 5,
+    "region": "Bakken",
+    "co2_tax_usd_per_kg": 0.0,
+    "free_design_variables": 8,
+    "file_determinism": "sort-symbols",
+    "symbolic_solver_labels": false
+  },
+  "reference": {
+    "environment": "Candidate A1 IDAES 2.0.0.dev3 / Pyomo 6.4.2",
+    "nl_bytes": 661047103,
+    "nl_sha256": "e0ea5f2121f93e379dd60614464b7667c8c090572cf6c4ad9a0dcafc8ca6bd10",
+    "nl_header": {
+      "variables": 5555,
+      "constraints": 5618,
+      "objectives": 1,
+      "equalities": 5547,
+      "jacobian_nonzeros": 34276,
+      "objective_gradient_nonzeros": 1,
+      "common_expressions_constraint": 0,
+      "common_expressions_constraint_single_use": 0
+    }
+  },
+  "candidate": {
+    "environment": "IDAES 2.12.0 / Pyomo 6.10.1",
+    "nl_bytes": 166612701,
+    "nl_sha256": "652f2f5bf46694d0d8697b6c7c390a4987b3d7b2963ad282b4dbe5c659e6fd76",
+    "nl_header": {
+      "variables": 5555,
+      "constraints": 5618,
+      "objectives": 1,
+      "equalities": 5547,
+      "jacobian_nonzeros": 34276,
+      "objective_gradient_nonzeros": 1,
+      "common_expressions_constraint": 548,
+      "common_expressions_constraint_single_use": 7309
+    }
+  },
+  "ordering": {
+    "variables": {
+      "component_sets_identical": true,
+      "shared_components": 5555,
+      "same_position_count": 780,
+      "longest_common_prefix": 11,
+      "maximum_absolute_position_displacement": 2460,
+      "maximum_displacement_component": "fs.R102.control_volume.properties[0.0,1.0].flow_mol",
+      "reference_index": 5264,
+      "candidate_index": 2804
+    },
+    "constraints": {
+      "component_sets_identical": true,
+      "shared_components": 5618,
+      "same_position_count": 5618,
+      "longest_common_prefix": 5618,
+      "maximum_absolute_position_displacement": 0
+    },
+    "objectives": {
+      "component_sets_identical": true,
+      "shared_components": 1,
+      "same_position_count": 1,
+      "longest_common_prefix": 1,
+      "maximum_absolute_position_displacement": 0
+    }
+  },
+  "conclusions": [
+    "The two environments construct identical named variable, constraint, and objective component sets for this NLP.",
+    "Constraint and objective ordering is identical, but variable ordering differs immediately after an eleven-variable prefix; only 780 of 5,555 variables retain the same column position.",
+    "The largest variable displacement is 2,460 columns and occurs in an R102 reactor outlet state variable, placing the strongest reordering directly in the unit implicated by the ill-conditioned solve.",
+    "Pyomo 6.10.1 emits thousands of common-expression records that Pyomo 6.4.2 does not, reducing the NL file to about one quarter of its historical size despite identical reported NLP dimensions and nonzero counts.",
+    "The full-DOF cross-version convergence difference is therefore consistent with writer-level column ordering and expression grouping changing IPOPT's numerical path; it is not evidence that named model equations or components changed. This diagnosis does not by itself establish which writer representation is numerically preferable."
+  ]
+}

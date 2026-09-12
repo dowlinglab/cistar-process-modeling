@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "experiment_id": "B-ROK-MODEL-COMPARISON-DEFINED-VARIABLE-INLINING-001",
+  "purpose": "Reproduce the published M2-M4 Bakken model-comparison optimization cases under stable IDAES 2.12 using the writer compatibility policy established for M5.",
+  "common_case": {
+    "environment": "IDAES 2.12.0 / Pyomo 6.10.1 / IPOPT 3.14.19",
+    "region": "Bakken",
+    "co2_tax_usd_per_kg": 0.045,
+    "linear_solver": "ma27",
+    "strict_tolerance": 1e-6,
+    "max_iterations": 500,
+    "initial_h103_temperature_K": 590.0,
+    "writer_option": {"export_defined_variables": false},
+    "historical_column_order_requested": false
+  },
+  "runs": [
+    {
+      "model_code": 2,
+      "termination_condition": "optimal",
+      "iterations": 19,
+      "unscaled_constraint_violation": 5.9604644775390625e-8,
+      "dual_infeasibility": 3.050094158932999e-8,
+      "msp_usd_per_mj": 0.011273741078417282,
+      "msp_difference_from_migrated_csv_usd_per_mj": -1.6551239545581353e-12,
+      "r102_temperature_difference_from_migrated_csv_K": 0.00032879075411074155,
+      "tac_difference_from_migrated_csv_usd_per_year": -0.24100396037101746
+    },
+    {
+      "model_code": 3,
+      "termination_condition": "optimal",
+      "iterations": 18,
+      "unscaled_constraint_violation": 1.1920928955078125e-7,
+      "dual_infeasibility": 5.6909809298985895e-8,
+      "msp_usd_per_mj": 0.011183786255210047,
+      "msp_difference_from_migrated_csv_usd_per_mj": 6.374743267978378e-11,
+      "r102_temperature_difference_from_migrated_csv_K": 0.0003337708607205059,
+      "tac_difference_from_migrated_csv_usd_per_year": 1.211211234331131
+    },
+    {
+      "model_code": 4,
+      "termination_condition": "optimal",
+      "iterations": 17,
+      "unscaled_constraint_violation": 1.1920928955078125e-7,
+      "dual_infeasibility": 2.9359486711000635e-8,
+      "msp_usd_per_mj": 0.011408231956887416,
+      "msp_difference_from_migrated_csv_usd_per_mj": -1.274331803274853e-10,
+      "r102_temperature_difference_from_migrated_csv_K": 0.00039982271073313314,
+      "tac_difference_from_migrated_csv_usd_per_year": 0.7808711528778076
+    }
+  ],
+  "maximum_absolute_differences": {
+    "msp_usd_per_mj": 1.274331803274853e-10,
+    "r102_temperature_K": 0.00039982271073313314,
+    "tac_usd_per_year": 1.211211234331131
+  },
+  "command_template": "conda run --no-capture-output -n cistar-idaes-2.12 python reproducibility/run_rok_bakken_model.py --model-code MODEL --ipopt IPOPT --linear-solver ma27 --max-iter 500 --inline-defined-variables --output RESULT.json",
+  "conclusions": [
+    "All three published M2-M4 Bakken optimization cases terminate at strict optima under stable IDAES 2.12.",
+    "The inlining-only writer policy transfers from M5 without historical column maps or model-specific scaling changes.",
+    "All headline differences are far below reporting precision; M2-M4 are counted as reproduced against the migrated computational snapshot."
+  ]
+}

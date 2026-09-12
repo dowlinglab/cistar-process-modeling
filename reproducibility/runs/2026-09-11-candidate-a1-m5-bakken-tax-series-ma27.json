@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "experiment_id": "A1-M5-BAKKEN-TAX-SERIES-MA27-001",
+  "date": "2026-09-11",
+  "git_commit": "0119464",
+  "environment": {
+    "candidate": "A1",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "python": "3.10.8",
+    "idaes": "2.0.0.dev3",
+    "idaes_commit": "66935c80a5aafc3ffc9ab3d387e488cddd4f233b",
+    "pyomo": "6.4.2",
+    "ipopt": "3.14.19",
+    "linear_solver": "ma27"
+  },
+  "initialization": "Exact archived unit, constrained, and costed checkpoints followed by sequential solves in ascending tax order.",
+  "total_wall_seconds": 8388.127086877823,
+  "cases": [
+    {
+      "tax_usd_per_tonne": 0.0,
+      "termination": "optimal",
+      "iterations": 20,
+      "ipopt_seconds": 602.392,
+      "wall_seconds": 1088.6262669563293,
+      "msp_usd_per_mj": 0.010389144743374913,
+      "msp_difference_from_migrated_csv": -9.225565276993475e-10
+    },
+    {
+      "tax_usd_per_tonne": 0.01,
+      "termination": "optimal",
+      "iterations": 13,
+      "ipopt_seconds": 396.926,
+      "wall_seconds": 869.5381150245667,
+      "msp_usd_per_mj": 0.010389360646001782,
+      "msp_difference_from_migrated_csv": -1.2288645795388575e-11
+    },
+    {
+      "tax_usd_per_tonne": 1.0,
+      "termination": "optimal",
+      "iterations": 13,
+      "ipopt_seconds": 345.11,
+      "wall_seconds": 803.6364209651947,
+      "msp_usd_per_mj": 0.010411320978926938,
+      "msp_difference_from_migrated_csv": -2.7007411931845304e-11
+    },
+    {
+      "tax_usd_per_tonne": 17.0,
+      "termination": "optimal",
+      "iterations": 11,
+      "ipopt_seconds": 283.951,
+      "wall_seconds": 724.5466639995575,
+      "msp_usd_per_mj": 0.010766182915623717,
+      "msp_difference_from_migrated_csv": 2.001851635846652e-11
+    },
+    {
+      "tax_usd_per_tonne": 45.0,
+      "termination": "optimal",
+      "iterations": 13,
+      "ipopt_seconds": 334.65,
+      "wall_seconds": 774.0471358299255,
+      "msp_usd_per_mj": 0.011387245499480498,
+      "msp_difference_from_migrated_csv": 1.1447835734923473e-11
+    },
+    {
+      "tax_usd_per_tonne": 190.0,
+      "termination": "optimal",
+      "iterations": 12,
+      "ipopt_seconds": 313.011,
+      "wall_seconds": 751.2379329204559,
+      "msp_usd_per_mj": 0.014603131739187123,
+      "msp_difference_from_migrated_csv": -2.490988977588149e-10
+    },
+    {
+      "tax_usd_per_tonne": 410.0,
+      "termination": "maxIterations",
+      "iterations": 100,
+      "ipopt_seconds": 2929.077,
+      "wall_seconds": 3367.716863155365,
+      "final_unscaled_constraint_violation": 12.697584807872772,
+      "msp_usd_per_mj": 0.019121818061881804,
+      "msp_difference_from_migrated_csv": -0.0003593417433401802,
+      "assessment": "Not reproduced. IPOPT entered restoration and exceeded the published notebook's 100-iteration limit. Test MA27 and MA57 from the exact archived USD 190/tonne optimum."
+    }
+  ],
+  "assessment": "Six of seven sequential carbon-tax cases reproduced at the migrated CSV precision. The USD 410/tonne transition remains an active solver/scaling diagnostic."
+}

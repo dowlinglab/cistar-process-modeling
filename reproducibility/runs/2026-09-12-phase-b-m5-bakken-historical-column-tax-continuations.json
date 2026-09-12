@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "experiment_id": "B-M5-BAKKEN-HISTORICAL-COLUMN-TAX-CONTINUATIONS-001",
+  "purpose": "Determine how far the published M5/Bakken carbon-tax path can be reproduced under IDAES 2.12 after pinning Candidate A1's exact NL variable-column sequence.",
+  "common_case": {
+    "environment": "IDAES 2.12.0 / Pyomo 6.10.1 / IPOPT 3.14.19",
+    "model_code": 5,
+    "region": "Bakken",
+    "free_design_variables": 8,
+    "max_iterations": 100,
+    "file_determinism": "sort-symbols",
+    "historical_column_order_sha256": "ffbb0f542b183207539008a4c27a8e28ad6a0d4c61f80f002ca01f55e58a611c",
+    "nlp_scaling_method": "ipopt-default"
+  },
+  "experiments": [
+    {
+      "path": "fresh modern sequential continuation",
+      "linear_solver": "ma27",
+      "cases": [
+        {
+          "tax_usd_per_tonne": 0.0,
+          "termination_condition": "optimal",
+          "iterations": 46,
+          "msp_difference_from_migrated_csv_usd_per_mj": 1.0624541350867656e-10,
+          "r102_temperature_difference_from_migrated_csv_K": -0.0005572596351157699
+        },
+        {
+          "tax_usd_per_tonne": 0.01,
+          "termination_condition": "optimal",
+          "iterations": 92,
+          "msp_usd_per_mj": 0.00919450196145439,
+          "msp_difference_from_migrated_csv_usd_per_mj": -0.0011948586968360368,
+          "r102_temperature_K": 525.3491555633856,
+          "r102_temperature_difference_from_migrated_csv_K": -125.19184443661447,
+          "classification": "accepted alternate local optimum; does not reproduce the published continuation"
+        }
+      ],
+      "disposition": "The sweep was intentionally stopped before the third case because subsequent continuation from the wrong second-case basin would not test the publication path. The incremental report preserves both completed cases."
+    },
+    {
+      "path": "archived USD 0/tonne optimum to USD 0.01/tonne",
+      "linear_solver": "ma27",
+      "termination_condition": "optimal",
+      "iterations": 72,
+      "msp_usd_per_mj": 0.010389280297442145,
+      "msp_difference_from_migrated_csv_usd_per_mj": -8.036084828307033e-08,
+      "r102_temperature_K": 650.5156083340125,
+      "r102_temperature_difference_from_migrated_csv_K": -0.02539166598751308,
+      "total_annualized_cost_difference_from_migrated_csv_usd_per_year": -1672.9038498997688,
+      "classification": "closely reproduced from the exact preceding archived checkpoint"
+    },
+    {
+      "path": "archived USD 0.01/tonne optimum to USD 1/tonne",
+      "linear_solver": "ma27",
+      "termination_condition": "maxIterations",
+      "iterations": 100,
+      "final_unscaled_constraint_violation": 17137.881701738574,
+      "final_dual_infeasibility": 499.6915885996524,
+      "classification": "failed in restoration after MA27 repeatedly enlarged its factorization workspace"
+    },
+    {
+      "path": "archived USD 0.01/tonne optimum to USD 1/tonne",
+      "linear_solver": "ma57",
+      "ma57_automatic_scaling": false,
+      "termination_condition": "maxIterations",
+      "iterations": 100,
+      "final_unscaled_constraint_violation": 0.023233938962221146,
+      "final_dual_infeasibility": 0.9999992758233083,
+      "classification": "failed in restoration; substantially closer to feasibility than MA27 but not an accepted solution"
+    },
+    {
+      "path": "archived USD 0.01/tonne optimum to USD 1/tonne",
+      "linear_solver": "ma57",
+      "ma57_automatic_scaling": true,
+      "termination_condition": "maxIterations",
+      "iterations": 100,
+      "final_unscaled_constraint_violation": 10364.057409633882,
+      "final_dual_infeasibility": 499.6951754144287,
+      "classification": "failed after domain-evaluation errors and prolonged restoration; MA57 internal scaling is not a remedy"
+    },
+    {
+      "path": "archived USD 0.01/tonne optimum to USD 1/tonne",
+      "linear_solver": "ma27",
+      "solver_io": "nl_v1",
+      "termination_condition": "intentionally interrupted after iteration 19",
+      "classification": "The legacy-compatible writer reproduced the failing default-writer trajectory digit-for-digit through the diagnostic screen, so the redundant full solve was stopped."
+    }
+  ],
+  "conclusions": [
+    "The exact historical column sequence is sufficient for the modern tax-zero case but not for the complete carbon-tax continuation.",
+    "A fresh modern tax-zero solution can match headline archived metrics while leading the next tax step to a different local optimum; checkpoint-level state differences remain numerically consequential.",
+    "Reloading the exact archived tax-zero state closely recovers the USD 0.01/tonne result, demonstrating that initialization state is causal for that transition.",
+    "The USD 1/tonne transition is not reproduced from its exact preceding archived checkpoint with MA27, MA57, or MA57 internal automatic scaling under the tested 100-iteration policy.",
+    "The identical nl and nl_v1 MA27 traces reject the remaining writer-selection hypothesis for the USD 1/tonne failure. Representation-robust state scaling and checkpoint-state comparison are the next diagnostics."
+  ]
+}

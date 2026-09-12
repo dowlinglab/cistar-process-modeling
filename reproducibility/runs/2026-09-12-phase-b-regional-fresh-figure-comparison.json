@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "experiment_id": "B-M5-REGIONAL-FRESH-FIGURE-COMPARISON-001",
+  "purpose": "Compare figure payloads from all twelve fresh IDAES 2.12 regional solutions with the archived workbook and printed article labels, without substituting archived data for a fresh solve.",
+  "source_run_records": [
+    "/private/tmp/cistar-phase-b-m5-regional-inline-ma27.json",
+    "/private/tmp/cistar-phase-b-m5-ef10-12-inline-ma27.json",
+    "/private/tmp/cistar-phase-b-m5-ef9-inline-historical-columns-ma27.json"
+  ],
+  "comparison_outputs": [
+    "/private/tmp/cistar-phase-b-m5-regional-ef1-8-figure-comparison.json",
+    "/private/tmp/cistar-phase-b-m5-regional-ef9-figure-comparison.json",
+    "/private/tmp/cistar-phase-b-m5-regional-ef10-12-figure-comparison.json"
+  ],
+  "regions_with_accepted_fresh_solutions_and_figure_payloads": ["EF-1", "EF-2", "EF-3", "EF-4", "EF-5", "EF-6", "EF-7", "EF-8", "EF-9", "EF-10", "EF-11", "EF-12"],
+  "maximum_detailed_differences": {
+    "stream_table_absolute": {"region": "EF-8", "value": 16.001562108751386, "note": "Absolute maximum includes stream pressure in Pa; use material relative comparison across different physical units."},
+    "stream_table_material_relative": {"region": "EF-10", "value": 0.0008197681820907732},
+    "heat_exchanger_table_absolute": {"region": "EF-10", "value": 9160.269429784268, "note": "Heat duty is in W."},
+    "heat_exchanger_table_material_relative": {"region": "EF-10", "value": 0.017719753135318324},
+    "hot_composite_curve_heat_gj_per_hour": {"region": "EF-10", "value": 3.7597624804714656},
+    "cold_composite_curve_heat_gj_per_hour": {"region": "EF-10", "value": 0.022800543073628887},
+    "composite_curve_nearest_knot_temperature_k": {"region": "EF-10", "value": 0.056894148352512275}
+  },
+  "printed_figure_7_total_labels": {
+    "match_within_half_unit": ["EF-1", "EF-2", "EF-3", "EF-4", "EF-5", "EF-6", "EF-8", "EF-9", "EF-11", "EF-12"],
+    "EF-7": {"difference_mw": -1.1884353852362892, "classification": "PUBLISHED-SNAPSHOT-DRIFT-001", "basis": "Fresh detailed stream values closely match the archived workbook but the printed label does not."},
+    "EF-10": {"difference_mw": 0.7773754089669183, "classification": "unclassified_fresh_solution_difference", "basis": "The fresh solution has measurable detailed drift from the archived workbook; do not attribute its printed-label miss solely to the known publication snapshot difference."}
+  },
+  "printed_figure_6_emissions": "All twelve fresh regional cases retain the documented EMISSIONS-NORMALIZATION-001 difference from printed upstream and process labels.",
+  "conclusion": "Every regional quantitative figure input can now be extracted from an accepted fresh modern solution. This does not assert byte-identical PDFs or that the printed publication snapshot is identical to the surviving workbook; EF-10 detailed drift remains a distinct modern solver-path discrepancy."
+}

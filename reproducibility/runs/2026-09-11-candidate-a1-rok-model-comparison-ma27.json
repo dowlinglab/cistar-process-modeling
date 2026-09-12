@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "experiment_id": "A1-ROK-MODEL-COMPARISON-MA27-001",
+  "date": "2026-09-11",
+  "git_commit": "64acc2a",
+  "environment": {
+    "candidate": "A1",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "python": "3.10.8",
+    "idaes": "2.0.0.dev3",
+    "idaes_commit": "66935c80a5aafc3ffc9ab3d387e488cddd4f233b",
+    "pyomo": "6.4.2",
+    "ipopt": "3.14.19",
+    "linear_solver": "ma27"
+  },
+  "case": {
+    "region": "Bakken",
+    "tax_usd_per_tonne": 45.0,
+    "catalyst_mass_kg": 1167.003367
+  },
+  "published_solve_sequence": {
+    "max_iterations": 500,
+    "initial_temperature_perturbation": {
+      "variable": "fs.H103.outlet.temperature",
+      "value_k": 590.0,
+      "method": "fix_then_unfix"
+    }
+  },
+  "models": [
+    {
+      "model_code": 2,
+      "termination": "optimal",
+      "iterations": 19,
+      "ipopt_seconds": 302.919,
+      "wall_seconds": 683.1939871311188,
+      "msp_usd_per_mj": 0.011273741079818368,
+      "msp_difference_from_migrated_csv": -2.5403810999247156e-13,
+      "tac_usd_per_year": 231483333.59880346,
+      "tac_difference_from_migrated_csv": -0.084196537733078,
+      "unscaled_constraint_violation": 5.9604644775390625e-8
+    },
+    {
+      "model_code": 3,
+      "termination": "optimal",
+      "iterations": 21,
+      "ipopt_seconds": 352.829,
+      "wall_seconds": 734.2731277942657,
+      "msp_usd_per_mj": 0.011183786041952977,
+      "msp_difference_from_migrated_csv": -1.4950963730941957e-10,
+      "tac_usd_per_year": 226954001.51034588,
+      "tac_difference_from_migrated_csv": -3.0656541287899017,
+      "unscaled_constraint_violation": 0.00002181529998779297
+    },
+    {
+      "model_code": 4,
+      "termination": "optimal",
+      "iterations": 17,
+      "ipopt_seconds": 266.691,
+      "wall_seconds": 653.4565658569336,
+      "msp_usd_per_mj": 0.011408232026013328,
+      "msp_difference_from_migrated_csv": -5.8307268735458e-11,
+      "tac_usd_per_year": 238342515.82409787,
+      "tac_difference_from_migrated_csv": 0.3710978627204895,
+      "unscaled_constraint_violation": 1.1920928955078125e-7
+    },
+    {
+      "model_code": 5,
+      "termination": "optimal",
+      "iterations": 13,
+      "ipopt_seconds": 334.65,
+      "wall_seconds": 774.0471358299255,
+      "msp_usd_per_mj": 0.011387245499480498,
+      "msp_difference_from_migrated_csv": 1.1447835734923473e-11,
+      "source_experiment_id": "A1-M5-BAKKEN-TAX-SERIES-MA27-001"
+    }
+  ],
+  "negative_control": {
+    "model_code": 4,
+    "omitted_step": "590 K H103 fix-then-unfix perturbation",
+    "ma27_termination": "maxIterations",
+    "ma57_termination": "maxIterations",
+    "assessment": "The failed controls establish that the notebook perturbation is material initialization provenance."
+  },
+  "conclusion": "All four published Bakken ROK-model points reproduce under candidate A1 at or beyond the precision stored in the migrated CSV when the exact notebook initialization sequence is retained."
+}

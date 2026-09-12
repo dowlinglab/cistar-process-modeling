@@ -1,0 +1,300 @@
+#!/usr/bin/env python3
+"""Rerun one published M5 regional optimization without overwriting archives."""
+
+from __future__ import annotations
+
+import argparse
+import csv
+import json
+import platform
+import sys
+import time
+from pathlib import Path
+from typing import Any
+
+import idaes
+import pandas as pd
+import pyomo
+from idaes.core.util import model_serializer as ms
+from idaes.core.util.model_statistics import degrees_of_freedom
+from pyomo.environ import SolverFactory
+
+from run_m5_bakken_tax_series import (
+    FileDeterminism,
+    IDAES_CANDIDATE_COMMIT,
+    REPO_ROOT,
+    _build_preoptimization_model,
+    _checkpoint,
+    _collect_results,
+    _configure_solver_environment,
+    _load_column_order,
+    _solver_version,
+    _write_report,
+)
+from src.emissions_calculations import (
+    calc_lhv_values,
+    delete_region_specific_components,
+)
+from src.result_extraction import (
+    collect_figure_data as _collect_figure_data,
+    dataframe_payload as _dataframe_payload,
+)
+from src.unit_initialization import (
+    fix_DOFs_post_optimization,
+    unfix_DOFs_pre_optimization,
+)
+
+
+PUBLISHED_TAX_USD_PER_KG = 0.045
+REGIONS = ("EF-Basin",) + tuple(f"EF-{index}" for index in range(1, 13))
+PERTURBED_ZONES = {"EF-1", "EF-6", "EF-7", "EF-10", "EF-11"}
+RESULT_METRICS = (
+    "MSP",
+    "Downstream-em",
+    "Product-LHV",
+    "H2-rebate",
+    "TAC",
+    "T_R102",
+    "T_H104",
+    "T_H105",
+    "P_F101",
+    "T_H106",
+    "P_H106",
+    "P_F102",
+    "Qs",
+    "Qw",
+)
+
+
+def _load_archived_row(region: str) -> dict[str, float]:
+    path = REPO_ROOT / "results" / "optimal_data_wrt_region.csv"
+    with path.open(newline="", encoding="utf-8") as stream:
+        for row in csv.DictReader(stream):
+            if row["ROK_model"] == "M5" and row["Region"] == region:
+                return {metric: float(row[metric]) for metric in RESULT_METRICS}
+    raise KeyError(f"No archived M5/{region} result in {path}")
+
+
+def _base_optimum_region(region: str) -> str:
+    return "EF-8" if region == "EF-9" else "EF-Basin"
+
+
+def _change_region(model: Any, region: str) -> str:
+    base_region = _base_optimum_region(region)
+    checkpoint = _checkpoint(
+        "CISTAR_optimal_solution_{}_C_tax_0.045_M5_purge_0.01_"
+        "sequential_solve.json.gz".format(base_region)
+    )
+    ms.from_json(model, fname=str(checkpoint))
+
+    inlet_data = pd.read_csv(REPO_ROOT / "data" / "NGL_compositions.csv")
+    for _, row in inlet_data.iterrows():
+        variable = model.fs.M101.feed.mole_frac_comp[0, row["Species"]]
+        variable.unfix()
+        value = 1e-6 if row[region] == 0.0 else round(row[region], 4)
+        variable.fix(value)
+
+    delete_region_specific_components(model)
+    calc_lhv_values(
+        model,
+        region,
+        str(REPO_ROOT / "data" / "LHV.xlsx"),
+        str(REPO_ROOT / "data" / "NGL_compositions.csv"),
+        str(REPO_ROOT / "data" / "NGL_fraction.csv"),
+    )
+    emissions = pd.read_csv(REPO_ROOT / "data" / "emissions_factor_by_region.csv")
+    model.fs.upstream_emission_factor = float(emissions[region].iloc[0])
+    return checkpoint.name
+
+
+def _base_report(
+    region: str,
+    ipopt: Path,
+    linear_solver: str,
+    solver_environment: dict[str, str],
+) -> dict[str, Any]:
+    return {
+        "schema_version": 1,
+        "environment": {
+            "platform": platform.platform(),
+            "machine": platform.machine(),
+            "python": sys.version,
+            "idaes": idaes.__version__,
+            "idaes_candidate_commit": IDAES_CANDIDATE_COMMIT,
+            "pyomo": pyomo.__version__,
+            "ipopt": _solver_version(ipopt, solver_environment),
+            "linear_solver": linear_solver,
+        },
+        "case": {
+            "model_code": 5,
+            "region": region,
+            "co2_tax_usd_per_kg": PUBLISHED_TAX_USD_PER_KG,
+        },
+        "initialization_chain": [
+            "CISTAR_unit_initialization_Bakken_M5.json.gz",
+            "CISTAR_solve_constrained_EF-Basin_M5_purge_0.01.json.gz",
+            "CISTAR_solve_with_costing_EF-Basin_C_tax_0.045_M5_purge_0.01.json.gz",
+        ],
+        "status": "building",
+    }
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--region", choices=REGIONS, required=True)
+    parser.add_argument("--ipopt", type=Path, required=True)
+    parser.add_argument(
+        "--linear-solver", choices=("ma27", "ma57"), default="ma27"
+    )
+    parser.add_argument("--max-iter", type=int, default=500)
+    parser.add_argument(
+        "--initial-optimum",
+        action="store_true",
+        help="Load the archived target-region optimum before solving.",
+    )
+    parser.add_argument("--tee", action="store_true")
+    parser.add_argument(
+        "--inline-defined-variables",
+        action="store_true",
+        help="Set export_defined_variables=false for the modern Pyomo NL writer.",
+    )
+    parser.add_argument(
+        "--file-determinism",
+        choices=("ordered", "sort-indices", "sort-symbols"),
+        default="ordered",
+    )
+    parser.add_argument("--column-order-from-symbol-map", type=Path)
+    parser.add_argument("--output", type=Path)
+    args = parser.parse_args()
+
+    started = time.time()
+    ipopt = args.ipopt.resolve()
+    solver_environment = _configure_solver_environment(ipopt)
+    report = _base_report(
+        args.region, ipopt, args.linear_solver, solver_environment
+    )
+    report["environment"]["inline_defined_variables"] = (
+        args.inline_defined_variables
+    )
+    report["environment"]["file_determinism"] = args.file_determinism
+    report["environment"]["column_order_from_symbol_map"] = (
+        str(args.column_order_from_symbol_map.resolve())
+        if args.column_order_from_symbol_map is not None
+        else None
+    )
+    model = _build_preoptimization_model(
+        model_code=5,
+        region="EF-Basin",
+        costing_tax=PUBLISHED_TAX_USD_PER_KG,
+        unit_initialization_region="Bakken",
+    )
+
+    if args.region == "EF-Basin":
+        perturbation = 593.0
+    else:
+        base_checkpoint = _change_region(model, args.region)
+        report["initialization_chain"].append(base_checkpoint)
+        report["base_optimum_region"] = _base_optimum_region(args.region)
+        perturbation = 653.0 if args.region in PERTURBED_ZONES else None
+
+    if args.initial_optimum:
+        checkpoint = _checkpoint(
+            "CISTAR_optimal_solution_{}_C_tax_0.045_M5_purge_0.01_"
+            "sequential_solve.json.gz".format(args.region)
+        )
+        ms.from_json(model, fname=str(checkpoint))
+        report["initialization_chain"].append(checkpoint.name)
+        report["archived_initial_optimum"] = checkpoint.name
+        perturbation = None
+
+    column_order = None
+    if args.column_order_from_symbol_map is not None:
+        column_order, column_digest = _load_column_order(
+            model, args.column_order_from_symbol_map
+        )
+        report["environment"]["requested_column_order_sha256"] = column_digest
+
+    report["build_seconds"] = time.time() - started
+    report["status"] = "running"
+    report["total_wall_seconds"] = time.time() - started
+    _write_report(report, args.output)
+
+    unfix_DOFs_pre_optimization(model)
+    if perturbation is not None:
+        model.fs.H103.outlet.temperature.fix(perturbation)
+        model.fs.H103.outlet.temperature.unfix()
+        report["initial_temperature_perturbation"] = {
+            "variable": "fs.H103.outlet.temperature",
+            "value_k": perturbation,
+            "method": "fix_then_unfix",
+        }
+    initial_dof = degrees_of_freedom(model)
+    solver = SolverFactory("ipopt", executable=str(ipopt))
+    solver.options.update(
+        {
+            "tol": 1e-6,
+            "bound_push": 1e-8,
+            "max_iter": args.max_iter,
+            "linear_solver": args.linear_solver,
+        }
+    )
+    solve_started = time.time()
+    try:
+        writer_options = (
+            {"export_defined_variables": False}
+            if args.inline_defined_variables
+            else {}
+        )
+        writer_options["file_determinism"] = {
+            "ordered": FileDeterminism.ORDERED,
+            "sort-indices": FileDeterminism.SORT_INDICES,
+            "sort-symbols": FileDeterminism.SORT_SYMBOLS,
+        }[args.file_determinism]
+        if column_order is not None:
+            writer_options["column_order"] = column_order
+        solve_result = solver.solve(model, tee=args.tee, **writer_options)
+    except KeyboardInterrupt:
+        report["run"] = {
+            "initial_degrees_of_freedom": initial_dof,
+            "termination_condition": "interrupted_by_operator",
+            "wall_seconds": time.time() - solve_started,
+        }
+        report["status"] = "interrupted"
+        report["total_wall_seconds"] = time.time() - started
+        _write_report(report, args.output)
+        raise
+    except Exception as error:
+        report["run"] = {
+            "initial_degrees_of_freedom": initial_dof,
+            "termination_condition": "python_exception",
+            "wall_seconds": time.time() - solve_started,
+            "exception_type": type(error).__name__,
+            "exception_message": str(error),
+        }
+        report["status"] = "error"
+        report["total_wall_seconds"] = time.time() - started
+        _write_report(report, args.output)
+        raise
+    fresh = _collect_results(model)
+    archived = _load_archived_row(args.region)
+    report["run"] = {
+        "initial_degrees_of_freedom": initial_dof,
+        "termination_condition": str(solve_result.solver.termination_condition),
+        "wall_seconds": time.time() - solve_started,
+        "results_in_migrated_csv_units": fresh,
+        "difference_from_migrated_csv": {
+            metric: fresh[metric] - archived[metric] for metric in fresh
+        },
+        "figure_data": _collect_figure_data(model),
+    }
+    fix_DOFs_post_optimization(model)
+    report["status"] = "complete"
+    report["total_wall_seconds"] = time.time() - started
+    rendered = json.dumps(report, indent=2, sort_keys=True)
+    print(rendered)
+    _write_report(report, args.output)
+    return 0 if report["run"]["termination_condition"] == "optimal" else 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

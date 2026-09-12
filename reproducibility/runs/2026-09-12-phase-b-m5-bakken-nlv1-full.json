@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "experiment_id": "B-M5-BAKKEN-NLV1-FULL-001",
+  "purpose": "Test whether Pyomo 6.10.1's legacy-compatible nl_v1 writer restores the Candidate A1 tax-zero convergence path under IDAES 2.12.",
+  "environment": {
+    "idaes": "2.12.0",
+    "pyomo": "6.10.1",
+    "python": "3.10.8",
+    "ipopt": "3.14.19",
+    "linear_solver": "ma27",
+    "solver_io": "nl_v1",
+    "nlp_scaling_method": "ipopt-default",
+    "modern_autoscale": false,
+    "max_iterations": 100
+  },
+  "case": {
+    "model_code": 5,
+    "region": "Bakken",
+    "co2_tax_usd_per_kg": 0.0,
+    "initialization": "historical unit/constrained/costed checkpoint chain"
+  },
+  "writer_warnings": {
+    "scaling_suffix_component_keys_absent_from_nl": 440,
+    "scaling_suffix_keys_not_exportable_component_types": 1750
+  },
+  "result": {
+    "solver_status": "warning",
+    "termination_condition": "maxIterations",
+    "solver_seconds": 314.395055770874,
+    "final_msp_usd_per_mj": 0.012107077696756952,
+    "final_r102_temperature_K": 512.8379248965141,
+    "final_total_annualized_cost_usd_per_year": 297810814.624573,
+    "final_product_lhv_mw": 911.3005889937472,
+    "difference_from_migrated_csv": {
+      "msp_usd_per_mj": 0.0017179320308255107,
+      "r102_temperature_K": -137.70407510348593,
+      "total_annualized_cost_usd_per_year": 80758982.274573,
+      "product_lhv_mw": 43.107588993747186
+    }
+  },
+  "interpretation": [
+    "The smaller first step observed in the one-iteration nl_v1 control does not lead to convergence when the run is extended to 100 iterations.",
+    "The final iterate is materially displaced from the archived/published solution and cannot be accepted as a reproduction.",
+    "Selecting nl_v1 alone is not a compatibility fix for the IDAES 2.12 optimization failure.",
+    "The scaling-suffix warnings provide evidence that inherited scaling metadata and the exported NLP are misaligned and motivate an explicit active-NLP scaling policy."
+  ]
+}

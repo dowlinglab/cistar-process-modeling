@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "experiment_id": "B-BAKKEN-FRESH-FIGURE-COMPARISON-001",
+  "purpose": "Verify all fresh M2-M5 Bakken optimization figure inputs against archived stream and heat-integration workbook sheets and the paper's printed ROK labels.",
+  "environment": {"idaes": "2.12.0", "pyomo": "6.10.1", "ipopt": "3.14.19", "linear_solver": "ma27", "inline_defined_variables": true},
+  "source_records": [
+    "/private/tmp/cistar-phase-b-rok-m2-inline-ma27-with-figure-data.json",
+    "/private/tmp/cistar-phase-b-rok-m3-inline-ma27-with-figure-data.json",
+    "/private/tmp/cistar-phase-b-rok-m4-inline-ma27-with-figure-data.json",
+    "/private/tmp/cistar-phase-b-m5-bakken-full-fresh-inline-with-figure-data.json"
+  ],
+  "full_comparison_output": "/private/tmp/cistar-phase-b-bakken-all-fresh-figure-comparison.json",
+  "fresh_cases": ["M2/Bakken/45", "M3/Bakken/45", "M4/Bakken/45", "M5/Bakken/0", "M5/Bakken/0.01", "M5/Bakken/1", "M5/Bakken/17", "M5/Bakken/45", "M5/Bakken/190", "M5/Bakken/410"],
+  "tax_units": "USD/tonne CO2e",
+  "termination_conditions": "All ten fresh MA27 solves are optimal. M5 tax zero starts from the ordinary costed initialization; each subsequent tax case starts from the preceding fresh solve, without archived-optimum reloads.",
+  "m5_tax_sequence": [
+    {"tax_usd_per_tonne": 0, "MSP_difference_usd_per_mj": -3.8709798040603705e-10, "T_R102_difference_k": -0.0006061420397145412, "TAC_difference_usd_per_year": -29.447755068540573},
+    {"tax_usd_per_tonne": 0.01, "MSP_difference_usd_per_mj": -1.6688409334997267e-11, "T_R102_difference_k": -0.00032549470404319436, "TAC_difference_usd_per_year": -0.3464241027832031},
+    {"tax_usd_per_tonne": 1, "MSP_difference_usd_per_mj": -3.577805239574072e-11, "T_R102_difference_k": -0.0004296609575931143, "TAC_difference_usd_per_year": -2.0322418808937073},
+    {"tax_usd_per_tonne": 17, "MSP_difference_usd_per_mj": -8.284544925074577e-12, "T_R102_difference_k": -0.00011816334608738543, "TAC_difference_usd_per_year": 3.166870504617691},
+    {"tax_usd_per_tonne": 45, "MSP_difference_usd_per_mj": -9.522518190641094e-12, "T_R102_difference_k": 0.0004921334085565832, "TAC_difference_usd_per_year": 0.4775991141796112},
+    {"tax_usd_per_tonne": 190, "MSP_difference_usd_per_mj": 1.9043226075904363e-09, "T_R102_difference_k": 0.0006275420851125091, "TAC_difference_usd_per_year": 60.811147928237915},
+    {"tax_usd_per_tonne": 410, "MSP_difference_usd_per_mj": 4.6551997326393924e-10, "T_R102_difference_k": 0.00042611046615093073, "TAC_difference_usd_per_year": 7.79946357011795}
+  ],
+  "maximum_detailed_differences": {
+    "stream_table_material_relative": {"case": "M5/Bakken/190", "value": 0.000013466711762103421},
+    "heat_exchanger_table_material_relative": {"case": "M3/Bakken/45", "value": 0.00008992948336910219},
+    "hot_composite_curve_heat_gj_per_hour": {"case": "M5/Bakken/190", "value": 0.05197193246220877},
+    "cold_composite_curve_heat_gj_per_hour": {"case": "M5/Bakken/190", "value": 0.001300579674364144}
+  },
+  "printed_ROK_labels": {
+    "figure_s1_liquid_flow_mol_per_s_differences": {"M2": -0.02410532376089236, "M3": -0.04049633123261742, "M4": 0.013679169602141883, "M5": 0.03220045921537462},
+    "figure_s2_c4_plus_olefin_mole_percent_differences": {"M2": -0.0015546475699750317, "M3": -0.002252536220169077, "M4": 0.0017193782353075449, "M5": 0.0002725487874783994},
+    "figure_3_emissions": "All four fresh ROK cases retain EMISSIONS-NORMALIZATION-001 versus the printed upstream and process labels."
+  },
+  "regional_base_follow_up": "EF-Basin was separately solved from costed initialization and reproduced with the narrow historical-order compatibility control; see B-M5-EF-BASIN-FRESH-ORDERING-CONTROLS-001."
+}

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "experiment_id": "A1-M5-BAKKEN-TAX410-ARCHIVED-RESTART-MA27-001",
+  "date": "2026-09-11",
+  "git_commit": "1838e95",
+  "environment": {
+    "candidate": "A1",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "python": "3.10.8",
+    "idaes": "2.0.0.dev3",
+    "idaes_commit": "66935c80a5aafc3ffc9ab3d387e488cddd4f233b",
+    "pyomo": "6.4.2",
+    "ipopt": "3.14.19",
+    "linear_solver": "ma27"
+  },
+  "initialization": "Exact archived M5/Bakken optimum at 410 USD/tonne, re-solved without changing the carbon tax.",
+  "termination": "optimal",
+  "iterations": 11,
+  "ipopt_seconds": 205.808,
+  "wall_seconds": 635.9222118854523,
+  "results": {
+    "msp_usd_per_mj": 0.019481065951580084,
+    "msp_difference_from_migrated_csv": -9.385364189984369e-8,
+    "tac_usd_per_year": 407077519.7414181,
+    "tac_difference_from_migrated_csv": 814.1274181008339,
+    "downstream_emissions": 8.859546216983741,
+    "downstream_emissions_difference_from_migrated_csv": -0.0004537830162583134,
+    "unscaled_constraint_violation": 5.9604644775390625e-8,
+    "dual_infeasibility": 6.201431452380816e-8
+  },
+  "valid_optimum": true,
+  "conclusion": "The archived 410 USD/tonne point is a stable local optimum under candidate A1. Its refined MSP closely matches the migrated CSV, while finer tax continuation reaches a distinct local optimum with an objective about 0.11% lower."
+}

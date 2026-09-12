@@ -237,19 +237,28 @@ def delete_region_specific_components(m):
     Function to delete region-specific emisisons data in order to update emissions 
     calculations from a single initialization file (single region)
     """
-    m.fs.del_component(m.fs.component_LHV_values)
-    m.fs.del_component(m.fs.component_MW_values)
-    m.fs.del_component(m.fs.shale_feed_comp)
-    m.fs.del_component(m.fs.shale_flowrate)
-    m.fs.del_component(m.fs.shale_flow_by_comp)
-    m.fs.del_component(m.fs.NG_feed_comp)
-    m.fs.del_component(m.fs.NG_flowrate)
-    m.fs.del_component(m.fs.NG_flow_by_comp)
-    m.fs.del_component(m.fs.Streams)
-    m.fs.del_component(m.fs.LHV_per_component_per_stream)
-    m.fs.del_component(m.fs.LHV_per_component_per_stream_index)
-    m.fs.del_component(m.fs.LHV_per_unit_stream)
-    m.fs.del_component(m.fs.LHV_per_stream)
-    m.fs.del_component(m.fs.MW_upstream)
-    m.fs.del_component(m.fs.MW_upstream_index)
-    m.fs.del_component(m.fs.MW_upstream_total)
+    component_names = (
+        "component_LHV_values",
+        "component_MW_values",
+        "shale_feed_comp",
+        "shale_flowrate",
+        "shale_flow_by_comp",
+        "NG_feed_comp",
+        "NG_flowrate",
+        "NG_flow_by_comp",
+        "Streams",
+        "LHV_per_component_per_stream",
+        "LHV_per_component_per_stream_index",
+        "LHV_per_unit_stream",
+        "LHV_per_stream",
+        "MW_upstream",
+        "MW_upstream_index",
+        "MW_upstream_total",
+    )
+    # Pyomo 6.4 registered some generated index sets as named block
+    # components; Pyomo 6.10 does not necessarily do so. Resolve by name and
+    # skip absent generated components so a region switch is version-robust.
+    for component_name in component_names:
+        component = m.fs.component(component_name)
+        if component is not None:
+            m.fs.del_component(component)

@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "experiment_id": "B-IDAES-2.12-BASELINE-001",
+  "date": "2026-09-12",
+  "base_git_commit": "bcd5eb4",
+  "branch": "codex/update-idaes-2.12",
+  "environment": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "python": "3.10.8",
+    "idaes": "2.12.0",
+    "pyomo": "6.10.1",
+    "numpy": "2.2.6",
+    "pandas": "2.3.3",
+    "scipy": "1.15.3",
+    "matplotlib": "3.10.9",
+    "ipopt": "3.14.19"
+  },
+  "status": "baseline_complete",
+  "validation": {
+    "repository_modules_imported": 12,
+    "m5_bakken_build": {
+      "degrees_of_freedom": 4,
+      "component_data_objects": 24454,
+      "historical_component_data_objects": 24610,
+      "difference": -156
+    },
+    "historical_checkpoint_chain": {
+      "unit_checkpoint": "loaded",
+      "constrained_checkpoint": "loaded",
+      "costed_checkpoint": "loaded",
+      "degrees_of_freedom_before_optimization_unfix": 0,
+      "component_data_objects_after_costing_and_optimization_setup": 25069
+    },
+    "tests": {
+      "idaes_2_12": "24 passed",
+      "historical_candidate_a1_regression": "24 passed"
+    },
+    "hsl_solver_smoke": {
+      "ma27": "optimal",
+      "ma57": "optimal"
+    }
+  },
+  "compatibility_change": "large_residuals_set and variables_near_bounds_set are imported from idaes.core.util.model_statistics, where both IDAES 2.0.0.dev3 and 2.12.0 expose them.",
+  "warnings_to_address": [
+    "pandas positional Series indexing in reaction_network_generator.py",
+    "single-phase control volumes still request phase-equilibrium terms"
+  ],
+  "conclusion": "IDAES 2.12.0 can import all modules, build the M5/Bakken topology, and load the historical checkpoint chain. Long initialization and optimization solves remain untested at this baseline."
+}

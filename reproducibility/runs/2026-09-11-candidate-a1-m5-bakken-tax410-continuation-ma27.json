@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "experiment_id": "A1-M5-BAKKEN-TAX410-CONTINUATION-MA27-001",
+  "date": "2026-09-11",
+  "git_commit": "cc0f5cd",
+  "environment": {
+    "candidate": "A1",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "python": "3.10.8",
+    "idaes": "2.0.0.dev3",
+    "idaes_commit": "66935c80a5aafc3ffc9ab3d387e488cddd4f233b",
+    "pyomo": "6.4.2",
+    "ipopt": "3.14.19",
+    "linear_solver": "ma27"
+  },
+  "initialization": "Exact archived M5/Bakken optimum at 190 USD/tonne, followed by sequential solves at 250, 300, 350, and 410 USD/tonne.",
+  "total_wall_seconds": 2841.23024892807,
+  "cases": [
+    {
+      "tax_usd_per_tonne": 250.0,
+      "termination": "optimal",
+      "iterations": 12,
+      "ipopt_seconds": 233.792,
+      "wall_seconds": 685.2918117046356,
+      "msp_usd_per_mj": 0.015933633599561788
+    },
+    {
+      "tax_usd_per_tonne": 300.0,
+      "termination": "optimal",
+      "iterations": 12,
+      "ipopt_seconds": 254.884,
+      "wall_seconds": 712.511892080307,
+      "msp_usd_per_mj": 0.01704234356971611
+    },
+    {
+      "tax_usd_per_tonne": 350.0,
+      "termination": "optimal",
+      "iterations": 12,
+      "ipopt_seconds": 224.356,
+      "wall_seconds": 678.5384118556976,
+      "msp_usd_per_mj": 0.018150955822573353
+    },
+    {
+      "tax_usd_per_tonne": 410.0,
+      "termination": "optimal",
+      "iterations": 16,
+      "ipopt_seconds": 309.578,
+      "wall_seconds": 756.7459282875061,
+      "msp_usd_per_mj": 0.0194597153774216,
+      "msp_difference_from_migrated_csv": -0.00002144442780038433,
+      "tac_usd_per_year": 407055047.1891663,
+      "tac_difference_from_migrated_csv": -21658.424833714962,
+      "downstream_emissions": 8.846312354364022,
+      "downstream_emissions_difference_from_migrated_csv": -0.013687645635977574,
+      "unscaled_constraint_violation": 2.384185791015625e-7,
+      "dual_infeasibility": 6.190379818562299e-8,
+      "valid_optimum": true
+    }
+  ],
+  "conclusion": "Smaller carbon-tax continuation steps recover a valid 410 USD/tonne optimum, but it is a distinct local solution with an MSP about 0.11% below the archived point."
+}

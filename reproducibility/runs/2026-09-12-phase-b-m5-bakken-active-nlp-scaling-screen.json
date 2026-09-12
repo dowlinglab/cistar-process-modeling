@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "experiment_id": "B-M5-BAKKEN-ACTIVE-NLP-SCALING-SCREEN-001",
+  "purpose": "Test whether clearing stale scaling suffix entries and rebuilding factors only for the exported active NLP improves the IDAES 2.12 solve trajectory.",
+  "environment": {
+    "idaes": "2.12.0",
+    "pyomo": "6.10.1",
+    "ipopt": "3.14.19",
+    "linear_solver": "ma57",
+    "solver_io": "nl",
+    "max_iterations": 10
+  },
+  "scaling_protocol": {
+    "inherited_suffixes_cleared": 147,
+    "inherited_suffix_entries_cleared": 7638,
+    "active_variables_scaled_by_current_magnitude": 5555,
+    "active_constraints_scaled_by_scaled_jacobian_2_norm": 5618,
+    "stale_key_writer_warnings_after_rebuild": 0,
+    "legacy_constraint_transformations_retained": true
+  },
+  "ipopt_trace": {
+    "iteration_0": {
+      "objective": 10.180331,
+      "unscaled_primal_infeasibility": 5.96e-8,
+      "dual_infeasibility": 1.0
+    },
+    "iteration_1": {
+      "objective": 10.158472,
+      "unscaled_primal_infeasibility": 91500.0,
+      "dual_infeasibility": 2510000.0,
+      "step_norm": 2240000.0
+    },
+    "iteration_10": {
+      "objective": 10.101479,
+      "unscaled_primal_infeasibility": 91331.60212612152,
+      "scaled_primal_infeasibility": 14.867281008569989,
+      "dual_infeasibility": 2494053.814988501,
+      "overall_nlp_error": 930334933.7511584
+    },
+    "termination_condition": "maxIterations",
+    "ipopt_seconds": 24.183
+  },
+  "interpretation": [
+    "The active-only rebuild removes all writer warnings but produces a catastrophic first step and is much worse than the retained whole-model AutoScaler control.",
+    "Skipped stale or non-exportable scaling suffix entries are not the cause of the modern convergence failure.",
+    "Some distinction between the inherited/whole-model policy and a uniform active-row Jacobian-norm policy is numerically important; likely candidates include treatment of inequalities and inherited constraint factors.",
+    "The active-NLP path remains opt-in for reproducible diagnostics and is not recommended as the modernization scaling policy."
+  ]
+}

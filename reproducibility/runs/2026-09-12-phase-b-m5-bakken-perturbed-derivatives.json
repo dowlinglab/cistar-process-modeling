@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "experiment_id": "B-M5-BAKKEN-PERTURBED-DERIVATIVE-COMPARISON-001",
+  "purpose": "Determine whether IDAES 2.12 changes the nonlinear optimization model away from the archived M5/Bakken tax-zero point.",
+  "reference_environment": {
+    "idaes": "2.0.0.dev3",
+    "pyomo": "6.4.2",
+    "python": "3.10.8"
+  },
+  "candidate_environment": {
+    "idaes": "2.12.0",
+    "pyomo": "6.10.1",
+    "python": "3.10.8"
+  },
+  "case": {
+    "model_code": 5,
+    "region": "Bakken",
+    "co2_tax_usd_per_kg": 0.0,
+    "checkpoint": "CISTAR_optimal_solution_Bakken_C_tax_0.0_M5_purge_0.01_sequential_solve.json.gz",
+    "perturbation": {
+      "variable": "fs.H105.control_volume.properties_out[0.0].temperature",
+      "delta_K": 1.0,
+      "before_K": 307.75211485961995,
+      "after_K": 308.75211485961995
+    }
+  },
+  "protocol": {
+    "fingerprint_driver": "reproducibility/fingerprint_m5_bakken_derivatives.py",
+    "comparison_driver": "reproducibility/compare_derivative_fingerprints.py",
+    "alignment": "variable and constraint names",
+    "jacobian": "unscaled full active-constraint Jacobian",
+    "hessian": "Lagrangian Hessian with objective factor 1 and deterministic name-derived constraint duals",
+    "scaled_difference": "abs(candidate-reference) / max(1, abs(reference), abs(candidate))"
+  },
+  "component_sets": {
+    "variables": 5555,
+    "constraints": 5618,
+    "variable_names_identical": true,
+    "constraint_names_identical": true
+  },
+  "objective_gradient": {
+    "nonzeros": 1,
+    "sparsity_pattern_identical": true,
+    "maximum_absolute_difference": 0.0,
+    "maximum_scaled_difference": 0.0
+  },
+  "constraint_jacobian": {
+    "nonzeros": 34276,
+    "sparsity_pattern_identical": true,
+    "maximum_absolute_difference": 5.820766091346741e-11,
+    "maximum_scaled_difference": 1.0131895322729179e-12,
+    "entries_above_scaled_1e-10": 0,
+    "largest_scaled_difference_components": [
+      "fs.F102.control_volume.properties_out[0.0].equilibrium_constraint[Vap,Liq,ethylene]",
+      "fs.F102.control_volume.properties_out[0.0].mole_frac_phase_comp[Liq,octane]"
+    ]
+  },
+  "lagrangian_hessian": {
+    "canonical_symmetric_nonzeros": 16548,
+    "sparsity_pattern_identical": true,
+    "maximum_absolute_difference": 2.1827872842550278e-10,
+    "maximum_scaled_difference": 8.205143026606895e-12,
+    "entries_above_scaled_1e-10": 0,
+    "largest_scaled_difference_components": [
+      "fs.F102.control_volume.properties_out[0.0].flow_mol_phase_comp[Liq,heptene]",
+      "fs.F102.control_volume.properties_out[0.0].flow_mol_phase_comp[Liq,hexene]"
+    ]
+  },
+  "constraint_values": {
+    "reference_nonzeros": 4439,
+    "candidate_nonzeros": 4430,
+    "maximum_absolute_difference": 5.820766091346741e-11,
+    "maximum_scaled_difference": 5.820766091346741e-11,
+    "entries_above_scaled_1e-10": 0
+  },
+  "interpretation": [
+    "The two environments construct the same named NLP and the same first- and second-derivative sparsity patterns.",
+    "At a point displaced from the archived checkpoint, all derivative differences are below 1e-10 on the stated scale-aware metric.",
+    "A meaningful changed nonlinear equation or higher derivative is not supported as the cause of the IDAES 2.12 solve failure.",
+    "The remaining leading explanation is solver/writer trajectory sensitivity amplified by the approximately 1e18-conditioned state Jacobian already recorded in B-M5-BAKKEN-CROSS-VERSION-STATIONARITY-001."
+  ]
+}
