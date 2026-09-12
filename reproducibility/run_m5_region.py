@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import numbers
 import platform
 import sys
 import time
@@ -137,7 +138,27 @@ def _base_report(
 
 def _dataframe_payload(frame: pd.DataFrame) -> dict[str, Any]:
     """Return a JSON-safe, orientation-preserving DataFrame representation."""
-    return json.loads(frame.to_json(orient="split", double_precision=15))
+    def normalize(value_: Any) -> Any:
+        if value_ is None:
+            return None
+        if isinstance(value_, bool):
+            return value_
+        if isinstance(value_, numbers.Integral):
+            return int(value_)
+        if isinstance(value_, numbers.Real):
+            return None if pd.isna(value_) else float(value_)
+        if isinstance(value_, str):
+            return value_
+        return str(value_)
+
+    return {
+        "columns": [str(column) for column in frame.columns],
+        "index": [str(index) for index in frame.index],
+        "data": [
+            [normalize(value_) for value_ in row]
+            for row in frame.itertuples(index=False, name=None)
+        ],
+    }
 
 
 def _collect_figure_data(model: Any) -> dict[str, Any]:

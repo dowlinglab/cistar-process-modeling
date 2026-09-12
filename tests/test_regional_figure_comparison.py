@@ -13,9 +13,17 @@ from compare_regional_figure_data import (  # noqa: E402
     _gen_curves,
     _workbook_region,
 )
+from run_m5_region import _dataframe_payload  # noqa: E402
 
 
 class RegionalFigureComparisonTests(unittest.TestCase):
+    def test_dataframe_payload_preserves_trace_float_precision(self):
+        trace_value = 1.260558903831854e-14
+        payload = _dataframe_payload(
+            pd.DataFrame([[trace_value]], index=["trace"], columns=["s01"])
+        )
+        self.assertEqual(payload["data"][0][0], trace_value)
+
     def test_numeric_and_unit_differences_are_classified_separately(self):
         fresh = pd.DataFrame(
             [["mol/s", 2.5], ["K", "-"]],
