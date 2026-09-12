@@ -147,6 +147,17 @@ as controls and are not counted as reproductions. The record also preserves the
 maximum detailed stream-table and composite-curve differences so matching a
 single rounded figure label cannot mask a different stationary point.
 
+## Phase B baseline
+
+The IDAES 2.12 modernization branch starts from the Phase A head. Its first
+baseline is recorded as `B-IDAES-2.12-BASELINE-001`: all repository modules
+import, M5/Bakken builds, the historical unit/constrained/costed checkpoint
+chain loads, all 24 tests pass under both the historical and modern
+environments, and MA27/MA57 smoke solves terminate optimally. The modern build
+contains 156 fewer component data objects than Candidate A1, so later numerical
+comparisons must not assume internal object identity even when named model
+states agree.
+
 The default `postprocessed` snapshot uses the root-level CSV files created by
 commit `957e363`, which recalculated TAC and MSP using cooling water above 303 K
 and refrigerated water from 288-303 K. The `migrated` snapshot uses the CSV files

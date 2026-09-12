@@ -81,3 +81,22 @@ conda run -n cistar-paper-reproduction-a1 \
 The paper used IPOPT 3.13.2 with MA27. The locally retained IPOPT 3.13.2 binary
 has MUMPS only, while the locally built IPOPT 3.14.19 has both MA27 and MA57.
 Solver-version and linear-solver effects must therefore be reported separately.
+
+## Phase B: current stable IDAES 2.12
+
+`phase-b-idaes-2.12-macos-arm64.yml` captures the clean Phase B environment
+resolved on 2026-09-12. It pins IDAES 2.12.0 and every installed Python package,
+including Pyomo 6.10.1, NumPy 2.2.6, pandas 2.3.3, SciPy 1.15.3, and matplotlib
+3.10.9. Create it independently of Candidate A1:
+
+```bash
+conda env create -f environment/phase-b-idaes-2.12-macos-arm64.yml
+conda activate cistar-idaes-2.12
+```
+
+The file records the tested Apple Silicon environment. The model remains
+solver-independent at installation time; reproduction commands continue to
+accept an explicit HSL-enabled IPOPT executable rather than redistributing one.
+
+Official references: [IDAES 2.12 documentation](https://idaes-pse.readthedocs.io/en/stable/)
+and the [versioned installation guide](https://idaes-pse.readthedocs.io/en/stable/how_to_guides/versioned_idaes_install.html).

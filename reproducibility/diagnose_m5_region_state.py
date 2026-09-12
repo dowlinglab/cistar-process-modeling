@@ -13,7 +13,7 @@ from typing import Any, Iterable
 import idaes
 import pyomo
 from idaes.core.util import model_serializer as ms
-from idaes.core.util.model_diagnostics import (
+from idaes.core.util.model_statistics import (
     large_residuals_set,
     variables_near_bounds_set,
 )
