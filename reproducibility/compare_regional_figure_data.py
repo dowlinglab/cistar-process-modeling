@@ -84,6 +84,12 @@ def _compare_frames(fresh: pd.DataFrame, archived: pd.DataFrame) -> dict[str, An
         key=lambda item: item["relative_difference"],
         reverse=True,
     )
+    material_relative_floor = 1e-8
+    material_by_relative = [
+        item
+        for item in by_relative
+        if abs(item["archived"]) >= material_relative_floor
+    ]
     return {
         "fresh_shape": list(fresh.shape),
         "archived_shape": list(archived.shape),
@@ -101,6 +107,12 @@ def _compare_frames(fresh: pd.DataFrame, archived: pd.DataFrame) -> dict[str, An
         ),
         "maximum_relative_difference": (
             by_relative[0]["relative_difference"] if by_relative else None
+        ),
+        "material_relative_difference_floor": material_relative_floor,
+        "maximum_material_relative_difference": (
+            material_by_relative[0]["relative_difference"]
+            if material_by_relative
+            else None
         ),
         "largest_absolute_differences": by_absolute[:10],
         "largest_relative_differences": by_relative[:10],

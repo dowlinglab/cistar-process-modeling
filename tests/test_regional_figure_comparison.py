@@ -32,6 +32,7 @@ class RegionalFigureComparisonTests(unittest.TestCase):
 
         self.assertEqual(result["numeric_cells_compared"], 1)
         self.assertEqual(result["maximum_absolute_difference"], 0.5)
+        self.assertEqual(result["maximum_material_relative_difference"], 0.25)
         self.assertEqual(result["text_mismatch_count"], 0)
         self.assertEqual(result["unit_label_mismatch_count"], 1)
 
