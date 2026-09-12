@@ -31,6 +31,7 @@ from src.unit_initialization import (
     fix_DOFs_post_optimization,
     unfix_DOFs_pre_optimization,
 )
+from src.result_extraction import collect_figure_data
 
 
 PUBLISHED_TAX_USD_PER_KG = 0.045
@@ -192,6 +193,7 @@ def main() -> int:
         "difference_from_migrated_csv": {
             metric: fresh[metric] - archived[metric] for metric in fresh
         },
+        "figure_data": collect_figure_data(model),
     }
     fix_DOFs_post_optimization(model)
     report["status"] = "complete"

@@ -14,7 +14,7 @@ from compare_regional_figure_data import (  # noqa: E402
     _gen_curves,
     _workbook_region,
 )
-from run_m5_region import _dataframe_payload  # noqa: E402
+from src.result_extraction import dataframe_payload as _dataframe_payload  # noqa: E402
 
 
 class RegionalFigureComparisonTests(unittest.TestCase):

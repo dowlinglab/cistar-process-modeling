@@ -360,6 +360,18 @@ Region cleanup now resolves each component by name and safely skips absent
 generated components. Remaining figure-generation and all-paper audit gates
 must still pass before Phase B is complete.
 
+The fresh regional figure-input comparison is recorded in
+`B-M5-REGIONAL-FRESH-FIGURE-COMPARISON-001`. All twelve accepted modern states
+yield stream and heat-exchanger tables, component product series, emissions,
+and composite-curve coordinates. Ten fresh Figure 7 totals match their printed
+integer labels within half a unit. EF-7 retains the existing published-snapshot
+difference, whereas EF-10's 0.78 MW label miss is classified separately as a
+fresh-solution difference. EF-10 also has the largest detailed drift: a 0.082%
+material stream-table difference and 3.76 GJ/h maximum hot-curve heat shift.
+Figure 6's printed emissions retain `EMISSIONS-NORMALIZATION-001` for every
+region. The comparison does not turn a reproduced archived plot into proof that
+the fresh solution and printed paper are exactly identical.
+
 ## Known provenance findings
 
 The published process/downstream emissions in Tables S4-S6 and Figures 3 and 6

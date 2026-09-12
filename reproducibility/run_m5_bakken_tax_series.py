@@ -45,6 +45,7 @@ from src.emissions_calculations import (
     calculate_stream_energies,
     create_ghg_objective,
 )
+from src.result_extraction import collect_figure_data
 from src.unit_initialization import (
     create_flowsheet,
     define_arcs,
@@ -982,6 +983,7 @@ def main() -> int:
                 "wall_seconds": time.time() - case_started,
                 "results_in_migrated_csv_units": fresh,
                 "difference_from_migrated_csv": comparison,
+                "figure_data": collect_figure_data(model),
             }
         )
         fix_DOFs_post_optimization(model)
