@@ -235,6 +235,18 @@ Ordering is therefore an important sensitivity but the high-level writer
 setting is not a complete explanation; actual emitted NL symbol maps and
 writer grouping must be compared across Pyomo versions.
 
+That direct comparison is recorded in
+`B-M5-BAKKEN-NL-SYMBOL-MAP-COMPARISON-001`. The named component sets are
+identical and all 5,618 constraints retain the same row position, but only 780
+of 5,555 variables retain the same column position; the common prefix is just
+11 variables and the largest displacement is 2,460 columns in an R102 outlet
+state. Pyomo 6.10.1 also emits 548 reusable and 7,309 single-use constraint
+common expressions where Pyomo 6.4.2 emits none, reducing the NL file from
+661 MB to 167 MB with unchanged dimensions and Jacobian nonzero count. This
+isolates a real writer representation change capable of altering IPOPT's path,
+while the matching named equations and derivative fingerprints continue to
+rule against a changed mathematical model as the explanation.
+
 ## Known provenance findings
 
 The published process/downstream emissions in Tables S4-S6 and Figures 3 and 6
