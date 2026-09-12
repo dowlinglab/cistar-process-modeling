@@ -10,6 +10,8 @@ snapshots and future reruns.
   tolerances equal to one half-unit in the final displayed digit.
 - `result_manifest.json` maps every main-text and supporting figure/table to its
   notebook, archived data, and required comparison method.
+- `phase_a_coverage.json` gives the final evidence-backed disposition of all 22
+  published figures and tables and states the Phase A PR gate limitations.
 - `audit_published_tables.py` compares Tables S4-S6 with the two checked-in CSV
   families.
 - `audit_source_tables.py` compares the model inputs in Tables S1-S3 with the
